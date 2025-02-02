@@ -78,7 +78,7 @@ const ChatList = () => {
           </button>
         </form>
 
-        <div className="no-scrollbar overflow-auto max-h-full">
+        <div className="no-scrollbar overflow-auto max-h-full space-y-2.5">
           {/* Chat List Item */}
           {List.map((user, item) => {
             return (
@@ -93,6 +93,18 @@ const ChatList = () => {
                     className="h-full w-full rounded-full object-cover object-center"
                   />
                   <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-gray-2 bg-success"></span>
+                </div>
+
+                <div className="w-full">
+                  <h5 className="text-sm font-medium text-black dark:text-white">
+                    {user.name}
+                  </h5>
+
+                  <p className="text-sm">
+                    {user.message}
+                  </p>
+                  
+                  
                 </div>
               </div>
             );

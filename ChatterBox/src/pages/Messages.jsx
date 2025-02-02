@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChatList, Sidebar } from '../section/chat'
+import { ChatList, Inbox, Sidebar } from '../section/chat'
 
 const Messages = () => {
   return (
@@ -10,6 +10,7 @@ const Messages = () => {
          {/* Chatlist */}
          <ChatList/>
          {/* Inbox */}
+         <Inbox/>
       </div>
       
     </div>
