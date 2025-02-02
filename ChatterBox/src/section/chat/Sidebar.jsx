@@ -1,24 +1,20 @@
-import { Chat } from '@phosphor-icons/react'
-import React from 'react'
+import { Chat, SignOut } from "@phosphor-icons/react";
 
 const Sidebar = () => {
   return (
-    <div className='flex flex-col border-r border-stroke p-2 dark:border-strokedark '>
-        <div className='mx-auto border border-stroke p-2 dark:border-strokedark rounded-md'>
-            <Chat/>
-        </div>
+    <div className="flex flex-col border-r border-stroke p-2 dark:border-strokedark">
+      <div className="mx-auto border border-stroke p-2 dark:border-strokedark rounded-md">
+        <Chat size={24}/>
+      </div>
+      <div className="flex-grow"></div>
 
-        <div className="mx-auto self-end justify-self-end">
-                  <p>h</p>
+      <div>
+        <div className="mx-auto border rounded-md border-stroke p-2 dark:border-strokedark hover:cursor-pointer hover:bg-stone-100">
+          <SignOut size={24} />
         </div>
+      </div>
+    </div>
+  );
+};
 
-        <div className="mx-auto justify-self-end">
-            <p>y
-            </p>
-        </div>
-      
-    </div> 
-  )
-}
-
-export default Sidebar
+export default Sidebar;
