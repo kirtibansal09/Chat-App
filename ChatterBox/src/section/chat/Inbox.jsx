@@ -1,10 +1,10 @@
 import User03 from "../../assets/images/user/user-03.png";
 import {
-  DotsThree,
   LinkSimple,
   PaperPlaneTilt,
   Smiley,
 } from "@phosphor-icons/react";
+import Dropdown from "../../components/Dropdown";
 
 const Inbox = () => {
   return (
@@ -26,9 +26,9 @@ const Inbox = () => {
             <p className="text-sm">Reply to message</p>
           </div>
         </div>
-
+ 
         <div>
-          <DotsThree weight="bold" size={24} />
+          <Dropdown/>
         </div>
       </div>
 
