@@ -1,4 +1,3 @@
-import React from 'react'
 import { ChatList, Inbox, Sidebar } from '../section/chat'
 
 const Messages = () => {

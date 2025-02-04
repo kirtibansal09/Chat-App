@@ -1,12 +1,12 @@
 import { Route, Routes } from 'react-router-dom'
 import Messages from './pages/Messages'
+import Login from './pages/auth/Login'
 
 const App = () => {
   return (
     <Routes>
-      <Route>
         <Route index={true}  element={<Messages/>} />
-      </Route>
+        <Route path='/auth/login'  element={<Login/>} />
     </Routes>
   )
 }
