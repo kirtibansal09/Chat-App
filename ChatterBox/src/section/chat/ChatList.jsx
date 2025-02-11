@@ -8,6 +8,7 @@ import User05 from "../../assets/images/user/user-05.png";
 import User06 from "../../assets/images/user/user-06.png";
 import User07 from "../../assets/images/user/user-07.png";
 import User08 from "../../assets/images/user/user-08.png";
+import { useState } from "react";
 
 const List = [
   {
@@ -53,6 +54,7 @@ const List = [
 ];
 
 const ChatList = () => {
+  const [selected, setSelected] = useState(0);
   return (
     <div className="hidden h-full flex-col xl:flex xl:w-1/4">
       <div className="sticky border-b border-stroke dark:border-strokedark px-6 py-7.5 flex flex-row">
@@ -83,8 +85,11 @@ const ChatList = () => {
           {List.map((user, item) => {
             return (
               <div
-                className="flex cursor-pointer items-center rounded px-4 py-2 hover:bg-gray-2 dark:hover:bg-strokedark"
+                className={`flex cursor-pointer items-center rounded px-4 py-2 dark:hover:bg-strokedark ${selected === item ? "bg-gray dark:bg-boxdark-2": "hover:bg-gray-2 dark:hover:bg-boxdark-2/90"}`}
                 key={item}
+                onClick={() => {
+                  setSelected(item);
+                }}
               >
                 <div className="relative mr-3.5 h-11 w-full max-w-11 rounded-full ">
                   <img
@@ -103,8 +108,8 @@ const ChatList = () => {
                   <p className="text-sm">
                     {user.message}
                   </p>
-                  
-                  
+
+
                 </div>
               </div>
             );

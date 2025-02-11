@@ -26,10 +26,12 @@ function EmojiPicker() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+   
 
+  // toggle our emoji picker
   const handleTrigger = (e) => {
     e.preventDefault();
 
