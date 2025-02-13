@@ -1,9 +1,9 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import localStorage from "redux-persist/lib/storage";
+import storage from "redux-persist/lib/storage";
 
 const rootPersistConfig = {
   key: "root",
-  localStorage,
+  storage,
   keyPrefix: "redux-",
 };
 
