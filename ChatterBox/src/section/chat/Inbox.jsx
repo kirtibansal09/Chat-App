@@ -10,6 +10,7 @@ import Dropdown from "../../components/Dropdown";
 import EmojiPicker from "../../components/EmojiPicker";
 import { useState } from "react";
 import UserInfo from "./UserInfo";
+import Giphy from "../../components/Giphy";
 
 const Inbox = () => {
   const [userInfoOpen, setUserInfoOpen] = useState(false);
@@ -26,7 +27,7 @@ const Inbox = () => {
       >
         {/* Chat Header */}
         <div className="sticky flex flex-row border-stroke dark:border-strokedark border-b items-center justify-between px-6 py-4.5">
-          <div className="flex items-center" onClick={handleToggleUserInfo}>
+          <div className="flex items-center cursor-pointer" onClick={handleToggleUserInfo}>
             <div className="mr-4.5 h-13 overflow-hidden w-full max-w-13 rounded-full">
               <img
                 src={User03}
@@ -149,7 +150,7 @@ const Inbox = () => {
 
         {/* Input */}
         <div className="sticky bottom-0 border-t border-stroke px-6 py-5 bg-white dark:bg-boxdark  dark:border-strokedark">
-          <form className="flex items-center justify-between space-x-4.5">
+          <form className="flex items-center justify-between space-x-4.5 ">
             <div className="relative w-full">
               <input
                 type="text"
@@ -174,6 +175,8 @@ const Inbox = () => {
               <PaperPlaneTilt size={24} weight="bold" />
             </button>
           </form>
+
+          <Giphy/>
         </div>
       </div>
 
