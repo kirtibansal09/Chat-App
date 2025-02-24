@@ -1,3 +1,4 @@
+import GifModal from '../components/GifModal'
 import { ChatList, Inbox, Sidebar } from '../section/chat'
 
 const Messages = () => {
@@ -11,6 +12,8 @@ const Messages = () => {
          {/* Inbox */}
          <Inbox/>
       </div>
+
+      <GifModal/>
       
     </div>
   )
