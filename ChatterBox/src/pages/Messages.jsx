@@ -1,22 +1,24 @@
-import GifModal from '../components/GifModal'
-import { ChatList, Inbox, Sidebar } from '../section/chat'
+import GifModal from "../components/GifModal";
+import VoiceRecorder from "../components/VoiceRecorder";
+import { ChatList, Inbox, Sidebar } from "../section/chat";
 
 const Messages = () => {
   return (
-    <div className='h-screen overflow-hidden'>
+    <div className="h-screen overflow-hidden">
       <div className="h-full rounded-sm border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark xl:flex">
-         {/* {Sidebar} */}
-         <Sidebar/>
-         {/* Chatlist */}
-         <ChatList/>
-         {/* Inbox */}
-         <Inbox/>
+        {/* {Sidebar} */}
+        <Sidebar />
+        {/* Chatlist */}
+        <ChatList />
+        {/* Inbox */}
+        <Inbox />
       </div>
 
-      <GifModal/>
-      
-    </div>
-  )
-}
+      <GifModal />
 
-export default Messages
+      <VoiceRecorder />
+    </div>
+  );
+};
+
+export default Messages;
