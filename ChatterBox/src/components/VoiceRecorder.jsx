@@ -27,7 +27,7 @@ function VoiceRecorder() {
       echoCancellation: true,
     },
     (err) => console.log(err)
-  ); // onNotAllowedOrFound
+  ); // onNotAllowedOrNot Found
 
   const addAudioElement = (blob) => {
     const url = URL.createObjectURL(blob);
