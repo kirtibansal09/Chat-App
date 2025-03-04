@@ -16,6 +16,9 @@ import Giphy from "../../components/Giphy";
 import { useDispatch } from "react-redux";
 import { ToggleAudioModal } from "../../redux/slices/app";
 import Attachment from "../../components/Attachment";
+import MsgSeparator from "../../components/MsgSeparator";
+import TypingIndicator from "../../components/TypingIndicator";
+import { TextMessage } from "../../components/Messages";
 
 const Inbox = () => {
   const dispatch = useDispatch();
@@ -79,6 +82,26 @@ const Inbox = () => {
 
         {/* List of messages */}
         <div className="max-h-full space-y-3.5 overflow-auto no-scrollbar px-6 py-7.5 grow">
+
+          <TextMessage
+            author="Rahul Vashishtha"
+            content="Hello. This is my first message https://www.npmjs.com facebook.com"
+            read_receipt="sent"
+            incoming={true}
+            timestamp="2:44AM"
+          />
+
+          <div className="max-w-125 ml-auto">
+            <div className="mb-2.5 rounded-2xl rounded-br-none bg-primary px-5 py-3 ">
+              <p className="text-white ">
+                Hello, I will check the schedule and inform you
+              </p>
+            </div>
+            <p className="text-xs">1:57PM</p>
+          </div>
+
+          <MsgSeparator />
+
           <div className="max-w-125">
             <p className="mb-2.5 text-sm font-medium">Andri Thomas</p>
             <div className="mb-2.5 rounded-2xl rounded-tl-none bg-gray px-5 py-3 dark:bg-boxdark-2">
@@ -151,24 +174,8 @@ const Inbox = () => {
             </div>
             <p className="text-xs">1:57PM</p>
           </div>
-          <div className="max-w-125">
-            <p className="mb-2.5 text-sm font-medium">Andri Thomas</p>
-            <div className="mb-2.5 rounded-2xl rounded-tl-none bg-gray px-5 py-3 dark:bg-boxdark-2">
-              <p>
-                I want to make an appointment tommorow from 2:00 PM to 5:00 ?
-              </p>
-            </div>
-            <p className="text-xs">1:55PM</p>
-          </div>
 
-          <div className="max-w-125 ml-auto">
-            <div className="mb-2.5 rounded-2xl rounded-br-none bg-primary px-5 py-3 ">
-              <p className="text-white ">
-                Hello, I will check the schedule and inform you
-              </p>
-            </div>
-            <p className="text-xs">1:57PM</p>
-          </div>
+          <TypingIndicator />
         </div>
 
         {/* Input */}
@@ -185,12 +192,13 @@ const Inbox = () => {
                 <button onClick={handleMicClick} className="hover:text-primary">
                   <Microphone size={20} />
                 </button>
-                <button 
-                // onClick={(e) => {
-                //   e.preventDefault();
-                // }}
-                 className="hover:text-primary">
-                  <Attachment/>
+                <button
+                  // onClick={(e) => {
+                  //   e.preventDefault();
+                  // }}
+                  className="hover:text-primary"
+                >
+                  <Attachment />
                 </button>
                 <button
                   onClick={handleToggleGif}
