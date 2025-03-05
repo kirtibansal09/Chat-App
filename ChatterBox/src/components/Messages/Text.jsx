@@ -1,6 +1,7 @@
 import React from "react";
 import extractLinks from "../../utils/extractLinks";
 import Microlink from "@microlink/react";
+import { Check, Checks } from "@phosphor-icons/react";
 
 function Text({ incoming, author, timestamp, read_receipt, content }) {
   const { links, originalString } = extractLinks(content);
@@ -26,9 +27,25 @@ function Text({ incoming, author, timestamp, read_receipt, content }) {
           <Microlink style={{ width: "100%" }} url={links[0]} />
         )}
       </div>
-      <p className="text-xs">{timestamp}</p>
+
+      <div className="flex flex-row items-center justify-end space-x-2">
+        <div className={`${read_receipt !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
+          {read_receipt !== 'sent' ? (
+            <Checks weight="bold" size={18} />
+          ) : (
+            <Check weight="bold" size={18} />
+          )}
+        </div>
+        <p className="text-xs">{timestamp}</p>
+      </div>
     </div>
   );
 }
 
 export default Text;
+
+
+
+// Single Tick - Sent
+// Two Tick - gray - Delivered but not read
+// Two Tick - blue - Read

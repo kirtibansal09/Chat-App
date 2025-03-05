@@ -18,7 +18,7 @@ import { ToggleAudioModal } from "../../redux/slices/app";
 import Attachment from "../../components/Attachment";
 import MsgSeparator from "../../components/MsgSeparator";
 import TypingIndicator from "../../components/TypingIndicator";
-import { TextMessage } from "../../components/Messages";
+import { DocumentMessage, TextMessage, VoiceMessage } from "../../components/Messages";
 
 const Inbox = () => {
   const dispatch = useDispatch();
@@ -85,8 +85,8 @@ const Inbox = () => {
 
           <TextMessage
             author="Rahul Vashishtha"
-            content="Hello. This is my first message https://www.npmjs.com facebook.com"
-            read_receipt="sent"
+            content="Hello. This is my first message https://www.npmjs.com "
+            read_receipt="read"
             incoming={true}
             timestamp="2:44AM"
           />
@@ -101,6 +101,9 @@ const Inbox = () => {
           </div>
 
           <MsgSeparator />
+
+          <DocumentMessage author="Kirti Bansal" incoming={true} read_receipt="read" timestamp="4:23pm"/>
+          <VoiceMessage incoming={false} read_receipt= "delivered" timestamp="4:27pm"/>
 
           <div className="max-w-125">
             <p className="mb-2.5 text-sm font-medium">Andri Thomas</p>
