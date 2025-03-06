@@ -18,7 +18,12 @@ import { ToggleAudioModal } from "../../redux/slices/app";
 import Attachment from "../../components/Attachment";
 import MsgSeparator from "../../components/MsgSeparator";
 import TypingIndicator from "../../components/TypingIndicator";
-import { DocumentMessage, TextMessage, VoiceMessage } from "../../components/Messages";
+import {
+  DocumentMessage,
+  MediaMessage,
+  TextMessage,
+  VoiceMessage,
+} from "../../components/Messages";
 
 const Inbox = () => {
   const dispatch = useDispatch();
@@ -82,7 +87,6 @@ const Inbox = () => {
 
         {/* List of messages */}
         <div className="max-h-full space-y-3.5 overflow-auto no-scrollbar px-6 py-7.5 grow">
-
           <TextMessage
             author="Rahul Vashishtha"
             content="Hello. This is my first message https://www.npmjs.com "
@@ -102,8 +106,34 @@ const Inbox = () => {
 
           <MsgSeparator />
 
-          <DocumentMessage author="Kirti Bansal" incoming={true} read_receipt="read" timestamp="4:23pm"/>
-          <VoiceMessage incoming={false} read_receipt= "delivered" timestamp="4:27pm"/>
+          <DocumentMessage
+            author="Kirti Bansal"
+            incoming
+            read_receipt="read"
+            timestamp="4:23pm"
+          />
+
+          <VoiceMessage
+            incoming={false}
+            read_receipt="delivered"
+            timestamp="4:27pm"
+          />
+
+          <VoiceMessage
+            author="Kirti Bansal"
+            incoming={true}
+            read_receipt="delivered"
+            timestamp="4:27pm"
+          />
+
+          <MediaMessage
+            assets={[]}
+            author="Kirti Bansal"
+            caption="This is a beautiful car"
+            incoming
+            timestamp="5:32PM"
+            read_receipt="read"
+          />
 
           <div className="max-w-125">
             <p className="mb-2.5 text-sm font-medium">Andri Thomas</p>
