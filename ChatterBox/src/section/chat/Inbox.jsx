@@ -24,12 +24,24 @@ import {
   TextMessage,
   VoiceMessage,
 } from "../../components/Messages";
+import VideoRoom from "../../components/VideoRoom";
 
 const Inbox = () => {
   const dispatch = useDispatch();
   const [userInfoOpen, setUserInfoOpen] = useState(false);
 
   const [gifOpen, setGifOpen] = useState(false);
+
+  const [videoCall, setVideoCall] = useState(false);
+  const [audioCall, setAudioCall] = useState(false);
+
+  const handleToggleVideo = () => {
+    setVideoCall((p) => !p);
+  }
+
+  const handleToggleAudio = () => {
+    setAudioCall((p) => !p);
+  }
 
   const handleToggleGif = (e) => {
     e.preventDefault();
@@ -75,10 +87,10 @@ const Inbox = () => {
           </div>
 
           <div className="flex flex-row items-center space-x-8">
-            <button>
+            <button onClick={handleToggleVideo}>
               <VideoCamera size={24} />
             </button>
-            <button>
+            <button onClick={handleToggleAudio}>
               <Phone size={24} />
             </button>
             <Dropdown />
@@ -129,7 +141,7 @@ const Inbox = () => {
           <MediaMessage
             assets={[]}
             author="Kirti Bansal"
-            caption="This is a beautiful car"
+            caption="Look, found some cuties online"
             incoming
             timestamp="5:32PM"
             read_receipt="read"
@@ -256,6 +268,8 @@ const Inbox = () => {
           {gifOpen && <Giphy />}
         </div>
       </div>
+
+      {videoCall && <VideoRoom open={videoCall} handleClose={handleToggleVideo}/>}
 
       {userInfoOpen && (
         <div className="w-1/4">
