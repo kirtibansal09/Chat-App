@@ -2,25 +2,19 @@ import {
   Microphone,
   MicrophoneSlash,
   PhoneDisconnect,
-  VideoCamera,
-  VideoCameraSlash,
 } from "@phosphor-icons/react";
 import React, { useState } from "react";
 
 import User01 from "../assets/images/user/user-01.png";
 import User02 from "../assets/images/user/user-02.png";
 
-const VideoRoom = ({ open, handleClose }) => {
+const AudioRoom = ({ open, handleClose }) => {
   const [muteAudio, setMuteAudio] = useState(false);
-  const [muteVideo, setMuteVideo] = useState(false);
 
   const handleToggleAudio = () => {
     setMuteAudio((prev) => !prev);
   };
 
-  const handleToggleVideo = () => {
-    setMuteVideo((prev) => !prev);
-  };
   return (
     <div
       className={`fixed left-0 top-0 z-99 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5  ${
@@ -29,9 +23,9 @@ const VideoRoom = ({ open, handleClose }) => {
     >
       <div className="w-full max-w-142.5 rounded-lg bg-white dark:bg-boxdark-2 md:py-8 px-8 py-12 ">
         <div className="flex flex-col space-y-6">
-          {/* Video Feed Grid */}
+          {/* Audio Feed Grid */}
           <div className="grid grid-cols-2 gap-4 h-50 mb-4">
-            {/* Video Feed 1 */}
+            {/* Audio Feed 1 */}
             <div className="relative h-full w-full bg-gray rounded-md flex justify-center items-center">
               <div className="space-y-2">
                 <img
@@ -49,7 +43,7 @@ const VideoRoom = ({ open, handleClose }) => {
               </div>
             </div>
 
-            {/* Video Feed 2 */}
+            {/* Audio Feed 2 */}
             <div className="relative h-full w-full bg-gray rounded-md flex justify-center items-center">
               <div className="space-y-2">
                 <img
@@ -89,18 +83,6 @@ const VideoRoom = ({ open, handleClose }) => {
             >
               <PhoneDisconnect size={20} />
             </button>
-
-            {/* Video Camera Button */}
-            <button
-              onClick={handleToggleVideo}
-              className="p-3 rounded-md bg-gray dark:bg-boxdark text-black dark:text-white hover:bg-opacity-80 items-center justify-center"
-            >
-              {muteVideo ? (
-                <VideoCameraSlash size={20} />
-              ) : (
-                <VideoCamera size={20} />
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -108,4 +90,4 @@ const VideoRoom = ({ open, handleClose }) => {
   );
 };
 
-export default VideoRoom;
+export default AudioRoom;

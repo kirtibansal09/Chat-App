@@ -25,6 +25,7 @@ import {
   VoiceMessage,
 } from "../../components/Messages";
 import VideoRoom from "../../components/VideoRoom";
+import AudioRoom from "../../components/AudioRoom";
 
 const Inbox = () => {
   const dispatch = useDispatch();
@@ -37,11 +38,11 @@ const Inbox = () => {
 
   const handleToggleVideo = () => {
     setVideoCall((p) => !p);
-  }
+  };
 
   const handleToggleAudio = () => {
     setAudioCall((p) => !p);
-  }
+  };
 
   const handleToggleGif = (e) => {
     e.preventDefault();
@@ -269,7 +270,12 @@ const Inbox = () => {
         </div>
       </div>
 
-      {videoCall && <VideoRoom open={videoCall} handleClose={handleToggleVideo}/>}
+      {videoCall && (
+        <VideoRoom open={videoCall} handleClose={handleToggleVideo} />
+      )}
+      {audioCall && (
+        <AudioRoom open={audioCall} handleClose={handleToggleAudio} />
+      )}
 
       {userInfoOpen && (
         <div className="w-1/4">
