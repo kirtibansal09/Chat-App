@@ -27,12 +27,12 @@ const VideoRoom = ({ open, handleClose }) => {
         open ? "block" : "hidden"
       }`}
     >
-      <div className="w-full max-w-142.5 rounded-lg bg-white dark:bg-boxdark-2 md:py-8 px-8 py-12 ">
+      <div className="w-full max-w-142.5 rounded-lg bg-white dark:bg-boxdark md:py-8 px-8 py-12 ">
         <div className="flex flex-col space-y-6">
           {/* Video Feed Grid */}
           <div className="grid grid-cols-2 gap-4 h-50 mb-4">
             {/* Video Feed 1 */}
-            <div className="relative h-full w-full bg-gray rounded-md flex justify-center items-center">
+            <div className="relative h-full w-full bg-gray dark:bg-boxdark-2 rounded-md flex justify-center items-center">
               <div className="space-y-2">
                 <img
                   src={User01}
@@ -50,7 +50,7 @@ const VideoRoom = ({ open, handleClose }) => {
             </div>
 
             {/* Video Feed 2 */}
-            <div className="relative h-full w-full bg-gray rounded-md flex justify-center items-center">
+            <div className="relative h-full w-full bg-gray dark:bg-boxdark-2 rounded-md flex justify-center items-center">
               <div className="space-y-2">
                 <img
                   src={User02}

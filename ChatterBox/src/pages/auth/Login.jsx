@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import LoginIllustration from "../../assets/images/auth/login.svg";
 import { EnvelopeSimple, Lock } from "@phosphor-icons/react";
 
 function Login() {
+  const navigate = useNavigate();
   return (
     <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-screen">
       <div className="flex flex-wrap items-center h-full">
@@ -75,10 +76,13 @@ function Login() {
               </div>
 
               <div className="mb-5">
-                <input type="submit" value="Sign In" className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 " />
+                <input onClick={()=>{
+                  navigate("/dashboard");
+                }} type="submit" value="Sign In" className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 " />
               </div>
 
-              <button className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
+              <button onClick={()=>{
+                  navigate("/dashboard");}} className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
                 <span>
 
                   <svg

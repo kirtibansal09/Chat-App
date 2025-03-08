@@ -1,8 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 
 const Verification = () => {
+  const navigate = useNavigate();
   return (
     <div className="overflow-hidden px-4 dark:bg-boxdark-2 sm:px-8">
       <div className="flex h-screen flex-col items-center justify-center overflow-hidden">
@@ -38,7 +39,9 @@ const Verification = () => {
                     <button className="text-primary">Resend</button>
                   </p>
 
-                  <button className="flex w-full justify-center rounded-md bg-primary p-[13px] font-bold text-gray hover:bg-opacity-90">
+                  <button onClick={()=>{
+                    navigate("/dashboard")
+                  }} className="flex w-full justify-center rounded-md bg-primary p-[13px] font-bold text-gray hover:bg-opacity-90">
                     Verify
                   </button>
 

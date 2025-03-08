@@ -1,12 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import SignupIllustration from "../../assets/images/auth/signup.svg";
 import { EnvelopeSimple, Lock, User } from "@phosphor-icons/react";
 
 function Signup() {
+  const navigate = useNavigate();
   return (
-    <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-screen">
-      <div className="flex flex-wrap items-center h-full">
+    <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-full">
+      <div className="flex flex-wrap items-center h-full ">
         {/* Left Part */}
         <div className="hidden w-full xl:block xl:w-1/2">
           <div className="py-17.5 px-26 text-center">
@@ -109,10 +110,14 @@ function Signup() {
               </div>
 
               <div className="mb-5">
-                <input type="submit" value="Create account" className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 " />
+                <input onClick={()=>{
+                  navigate("/auth/verify")
+                }} type="submit" value="Create account" className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 " />
               </div>
 
-              <button className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
+              <button onClick={()=>{
+                navigate("/dashboard")
+              }} className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
                 <span>
 
                   <svg
