@@ -59,7 +59,7 @@ const Sidebar = () => {
         
         <button onClick={()=>{
           navigate("/")
-        }} className=" flex flex-row items-center justify-center  border rounded-md border-stroke p-2 dark:border-strokedark hover:cursor-pointer hover:bg-stone-100">
+        }} className="w-full flex flex-row items-center justify-center  border rounded-md border-stroke p-2 dark:border-strokedark hover:cursor-pointer hover:bg-stone-100">
           <SignOut size={24} />
         </button>
       </div>
