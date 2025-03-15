@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import  axiosInstance  from "../../utils/axios";
+import axiosInstance from "../../utils/axios";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const initialState = {
   isLoading: false,
@@ -19,12 +21,20 @@ const slice = createSlice({
     setLoading(state, action) {
       state.isLoading = action.payload;
     },
+    loginSuccess(state, action) {
+      state.token = action.payload;
+      state.isLoggedIn = true;
+    },
+    logoutSuccess(state, action) {
+      state.token = null;
+      state.isLoggedIn = false;
+    },
   },
 });
 
 export default slice.reducer;
 
-const { setError, setLoading } = slice.actions;
+const { setError, setLoading, loginSuccess, logoutSuccess } = slice.actions;
 
 // ** REGISTER USER
 export function RegisterUser(formData) {
@@ -45,13 +55,138 @@ export function RegisterUser(formData) {
       })
       .then(function (response) {
         console.log(response);
+
+        toast.success(response.data.message);
       })
       .catch(function (error) {
         console.log(error);
         dispatch(setError(error));
+
+        toast.error(error?.message || "Something went wrong!");
       })
       .finally(() => {
         dispatch(setLoading(false));
+      });
+  };
+}
+
+// RESEND OTP
+export function ResendOTP(email) {
+  return async (dispatch, getState) => {
+    dispatch(setError(null));
+    dispatch(setLoading(true));
+
+    // MAKE API CALL
+    await axios
+      .post(
+        "/auth/resend-otp",
+        {
+          email,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then(function (response) {
+        console.log(response.data);
+        toast.success(response.data.message);
+      })
+      .catch(function (error) {
+        console.log(error);
+        dispatch(setError(error));
+
+        toast.error(error?.message || "Something went wrong!");
+      })
+      .finally(() => {
+        dispatch(setLoading(false));
+      });
+  };
+}
+
+// VERIFY OTP
+export function VerifyOTP(formValues, navigate) {
+  return async (dispatch, getState) => {
+    dispatch(setError(null));
+    dispatch(setLoading(true));
+
+    await axios
+      .post(
+        "/auth/verify",
+        {
+          ...formValues,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then(function (response) {
+        console.log(response.data);
+
+        const { token, message } = response.data;
+
+        dispatch(loginSuccess(token));
+
+        toast.success(message || "Email Verified Successfully!");
+      })
+      .catch(function (error) {
+        console.log(error);
+        dispatch(setError(error));
+
+        toast.error(error?.message || "Something went wrong!");
+      })
+      .finally(() => {
+        dispatch(setLoading(false));
+
+        if (!getState().auth.error) {
+          navigate("/dashboard");
+        }
+      });
+  };
+}
+
+// LOGIN USER
+export function LoginUser(formValues, navigate) {
+  return async (dispatch, getState) => {
+    dispatch(setError(null));
+    dispatch(setLoading(true));
+
+    await axios
+      .post(
+        "/auth/login",
+        {
+          ...formValues,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then(function (response) {
+        console.log(response.data);
+
+        const { token, message } = response.data;
+
+        dispatch(loginSuccess(token));
+
+        toast.success(message || "Logged In Successfully!");
+      })
+      .catch(function (error) {
+        console.log(error);
+        dispatch(setError(error));
+
+        toast.error(error?.message || "Something went wrong!");
+      })
+      .finally(() => {
+        dispatch(setLoading(false));
+
+        if (!getState().auth.error) {
+          navigate("/dashboard");
+        }
       });
   };
 }
