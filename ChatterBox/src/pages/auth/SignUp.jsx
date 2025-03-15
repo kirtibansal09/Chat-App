@@ -2,9 +2,17 @@ import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import SignupIllustration from "../../assets/images/auth/signup.svg";
 import { EnvelopeSimple, Lock, User } from "@phosphor-icons/react";
+// import { RegisterUser } from "../../redux/slices/auth";
+import { useDispatch } from "react-redux";
 
 function Signup() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // const submitForm = () => {
+  //   dispatch(RegisterUser(formData));
+  // }
+
   return (
     <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-full">
       <div className="flex flex-wrap items-center h-full ">

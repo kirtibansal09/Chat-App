@@ -3,6 +3,7 @@ import storage from "redux-persist/lib/storage";
 
 //slices
 import appReducer from "./slices/app"
+import authReducer from "./slices/auth"
 
 const rootPersistConfig = {
   key: "root",
@@ -11,8 +12,8 @@ const rootPersistConfig = {
 };
 
 const rootReducer = combineReducers({
-  // TODO => Create and map Reducer
   app: appReducer,
+  auth: authReducer,
 });
 
 export { rootPersistConfig, rootReducer };
