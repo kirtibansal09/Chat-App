@@ -2,9 +2,48 @@ import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import LoginIllustration from "../../assets/images/auth/login.svg";
 import { EnvelopeSimple, Lock } from "@phosphor-icons/react";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useDispatch, useSelector } from "react-redux";
+import { LoginUser } from "../../redux/slices/auth";
+
+// Validation Schema
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Please enter a valid email")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { isLoading } = useSelector((state) => state.auth);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (data) => {
+    console.log(data, "Form Data: Login");
+
+    dispatch(LoginUser(data, navigate));
+  };
+
   return (
     <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-screen">
       <div className="flex flex-wrap items-center h-full">
@@ -38,7 +77,7 @@ function Login() {
               Sign In to ChatterBox
             </h2>
 
-            <form action="">
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="mb-4">
                 <label
                   htmlFor=""
@@ -48,12 +87,24 @@ function Login() {
                 </label>
 
                 <div className="relative">
-                  <input type="email" placeholder="Enter your email" className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary " />
+                  <input
+                    type="email"
+                    {...register("email")}
+                    placeholder="Enter your email"
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                      errors.email
+                        ? "border-red focus:border-red"
+                        : "border-stroke"
+                    }`}
+                  />
 
                   <span className="absolute right-4 top-4">
                     <EnvelopeSimple size={24} />
                   </span>
                 </div>
+                {errors.email && (
+                  <p className="text-red text-sm">{errors.email.message}</p>
+                )}
               </div>
 
               <div className="mb-6">
@@ -65,26 +116,41 @@ function Login() {
                 </label>
 
                 <div className="relative">
-                  <input type="password"
+                  <input
+                    type="password"
+                    {...register("password")}
                     placeholder="6+ characters, 1 Capital Letter"
-                    className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary " />
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                      errors.password
+                        ? "border-red focus:border-red"
+                        : "border-stroke"
+                    }`}
+                  />
 
                   <span className="absolute right-4 top-4">
                     <Lock size={24} />
                   </span>
                 </div>
+                {errors.password && (
+                  <p className="text-red text-sm">{errors.password.message}</p>
+                )}
               </div>
 
               <div className="mb-5">
-                <input onClick={()=>{
-                  navigate("/dashboard");
-                }} type="submit" value="Sign In" className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 " />
+                <button
+                  type="submit"
+                  disabled={isSubmitting || isLoading}
+                  className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 "
+                >
+                  {isSubmitting || isLoading ? "Submitting..." : "Sign In"}
+                </button>
               </div>
 
-              <button onClick={()=>{
-                  navigate("/dashboard");}} className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
+              {/* <button
+               
+                className="flex flex-row w-full items-center justify-center gap-3.5 border border-stroke bg-gray p-4 rounded-lg hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50"
+              >
                 <span>
-
                   <svg
                     width="20"
                     height="20"
@@ -116,17 +182,13 @@ function Login() {
                       </clipPath>
                     </defs>
                   </svg>
-
-    
-
                 </span>
-
                 Sign in with Google
-              </button>
+              </button> */}
 
               <div className="mt-6 text-center">
                 <p>
-                  Don't have an account? {" "}
+                  Don't have an account?{" "}
                   <Link to="/auth/signup" className="text-primary">
                     Sign up
                   </Link>
