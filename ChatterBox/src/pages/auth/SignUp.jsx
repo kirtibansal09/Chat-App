@@ -57,10 +57,10 @@ function Signup() {
   };
 
   return (
-    <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-full">
-      <div className="flex flex-wrap items-center h-full ">
+    <div className="border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark h-screen">
+      <div className="flex flex-wrap items-center h-full">
         {/* Left Part */}
-        <div className="hidden w-full xl:block xl:w-1/2">
+        <div className="hidden w-full lg:block lg:w-1/2">
           <div className="py-17.5 px-26 text-center">
             <Link to="/" className="mb-5.5 inline-block">
               <Logo />
@@ -81,8 +81,8 @@ function Signup() {
         </div>
 
         {/* Right Part */}
-        <div className="w-full border-stroke dark:border-strokedark xl:w-1/2 xl:border-l-2 xl:px-24">
-          <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
+        <div className="w-full border-stroke dark:border-strokedark lg:w-1/2 lg:border-l-2 lg:px-24">
+          <div className="w-full p-4 sm:p-12.5 md:px-17.5 md:py-12">
             <span className="mb-1.5 block font-medium">Start for free</span>
             <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
               Sign Up to ChatterBox
@@ -92,7 +92,7 @@ function Signup() {
               <div className="mb-4">
                 <label
                   htmlFor=""
-                  className="mb-2.5 block font-medium text-black dark:text-white"
+                  className="mb-2.5 block font-medium text-black dark:text-white text-base"
                 >
                   Name
                 </label>
@@ -102,15 +102,15 @@ function Signup() {
                     type="text"
                     {...register("name")}
                     placeholder="Enter your full name"
-                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-5 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
                       errors.name
                         ? "border-red focus:border-red"
                         : "border-stroke"
                     }`}
                   />
 
-                  <span className="absolute right-4 top-4">
-                    <User size={24} />
+                  <span className="absolute right-2 top-3">
+                    <User size={22} />
                   </span>
                 </div>
                 {errors.name && (
@@ -131,15 +131,15 @@ function Signup() {
                     type="email"
                     {...register("email")}
                     placeholder="Enter your email"
-                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-5 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
                       errors.email
                         ? "border-red focus:border-red"
                         : "border-stroke"
                     }`}
                   />
 
-                  <span className="absolute right-4 top-4">
-                    <EnvelopeSimple size={24} />
+                  <span className="absolute right-2 top-3">
+                    <EnvelopeSimple size={22} />
                   </span>
                 </div>
                 {errors.email && (
@@ -160,15 +160,15 @@ function Signup() {
                     type="password"
                     {...register("password")}
                     placeholder="Enter your password"
-                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-5 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
                       errors.password
                         ? "border-red focus:border-red"
                         : "border-stroke"
                     }`}
                   />
 
-                  <span className="absolute right-4 top-4">
-                    <Lock size={24} />
+                  <span className="absolute right-2 top-3">
+                    <Lock size={22} />
                   </span>
                 </div>
                 {errors.password && (
@@ -189,15 +189,15 @@ function Signup() {
                     type="password"
                     {...register("confirmPassword")}
                     placeholder="Re-type your password"
-                    className={`w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
+                    className={`w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-5 text-black outline-none focus:border-slate-500 focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary ${
                       errors.confirmPassword
                         ? "border-red focus:border-red"
                         : "border-stroke"
                     }`}
                   />
 
-                  <span className="absolute right-4 top-4">
-                    <Lock size={24} />
+                  <span className="absolute right-2 top-3">
+                    <Lock size={22} />
                   </span>
                 </div>
                 {errors.confirmPassword && (
@@ -211,7 +211,7 @@ function Signup() {
                 <button
                   type="submit"
                   disabled={isSubmitting }
-                  className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 "
+                  className="w-full cursor-pointer border border-primary bg-primary p-3 text-base text-white rounded-lg transition hover:bg-opacity-90 "
                 >
                   {isSubmitting || isLoading
                     ? "Submitting..."
@@ -262,7 +262,7 @@ function Signup() {
               </button> */}
 
               <div className="mt-6 text-center">
-                <p>
+                <p className="text-[15px]">
                   Already have an account?{" "}
                   <Link to="/auth/login" className="text-primary">
                     Sign in
