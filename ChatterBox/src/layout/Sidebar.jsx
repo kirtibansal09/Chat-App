@@ -2,6 +2,8 @@ import { Chat, ChatTeardropText,  SignOut, UserCircle} from "@phosphor-icons/rea
 import DarkModeSwitcher from "../components/DarkModeSwitcher";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { LogoutUser } from "../redux/slices/auth";
 
 const NAVIGATION = [
   {
@@ -22,6 +24,7 @@ const NAVIGATION = [
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [selected, setSelected] = useState(0);
   const handleClick = (key) => {
@@ -58,7 +61,7 @@ const Sidebar = () => {
         </div>
         
         <button onClick={()=>{
-          navigate("/")
+          dispatch(LogoutUser(navigate));
         }} className="w-full flex flex-row items-center justify-center  border rounded-md border-stroke p-2 dark:border-strokedark hover:cursor-pointer hover:bg-stone-100">
           <SignOut size={24} />
         </button>

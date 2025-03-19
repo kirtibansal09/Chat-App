@@ -37,10 +37,11 @@ export default slice.reducer;
 const { setError, setLoading, loginSuccess, logoutSuccess } = slice.actions;
 
 // ** REGISTER USER
-export function RegisterUser(formData) {
+export function RegisterUser(formData, navigate) {
   return async (dispatch, getState) => {
     dispatch(setError(null));
     dispatch(setLoading(true));
+    console.log("AXIOS REGISTER CALL");
 
     const reqBody = {
       ...formData,
@@ -66,6 +67,10 @@ export function RegisterUser(formData) {
       })
       .finally(() => {
         dispatch(setLoading(false));
+        console.log("FINALLY BLOCK");
+        if (!getState().auth.error) {
+          navigate(`/auth/verify?email=${formData.email}`);
+        }
       });
   };
 }
@@ -77,7 +82,7 @@ export function ResendOTP(email) {
     dispatch(setLoading(true));
 
     // MAKE API CALL
-    await axios
+    await axiosInstance
       .post(
         "/auth/resend-otp",
         {
@@ -111,7 +116,7 @@ export function VerifyOTP(formValues, navigate) {
     dispatch(setError(null));
     dispatch(setLoading(true));
 
-    await axios
+    await axiosInstance
       .post(
         "/auth/verify",
         {
@@ -154,7 +159,7 @@ export function LoginUser(formValues, navigate) {
     dispatch(setError(null));
     dispatch(setLoading(true));
 
-    await axios
+    await axiosInstance
       .post(
         "/auth/login",
         {
@@ -188,5 +193,17 @@ export function LoginUser(formValues, navigate) {
           navigate("/dashboard");
         }
       });
+  };
+}
+
+export function LogoutUser(navigate) {
+  return async (dispatch, getState) => {
+    try {
+      dispatch(logoutSuccess());
+      navigate("/");
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      console.log(error);
+    }
   };
 }

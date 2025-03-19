@@ -32,9 +32,7 @@ function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // const submitForm = () => {
-  //   dispatch(RegisterUser(formData));
-  // }
+
 
   const { isLoading } = useSelector((state) => state.auth);
 
@@ -55,7 +53,7 @@ function Signup() {
   const onSubmit = (data) => {
     console.log(data, "Form Data: Signup");
 
-    dispatch(RegisterUser(data));
+    dispatch(RegisterUser(data, navigate));
   };
 
   return (
@@ -212,7 +210,7 @@ function Signup() {
               <div className="mb-5">
                 <button
                   type="submit"
-                  disabled={isSubmitting || isLoading}
+                  disabled={isSubmitting }
                   className="w-full cursor-pointer border border-primary bg-primary p-4 text-white rounded-lg transition hover:bg-opacity-90 "
                 >
                   {isSubmitting || isLoading
