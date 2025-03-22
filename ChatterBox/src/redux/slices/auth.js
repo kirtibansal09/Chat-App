@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axios";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { DeSelectConversation } from "./app";
+import { DeSelectConversation, UpdateFriends } from "./app";
 import { useDispatch } from "react-redux";
 
 const initialState = {
@@ -201,6 +201,7 @@ export function LoginUser(formValues, navigate) {
 export function LogoutUser(navigate) {
   return async (dispatch, getState) => {
     dispatch(DeSelectConversation());
+    dispatch(UpdateFriends([]));
     try {
       dispatch(logoutSuccess());
       navigate("/");

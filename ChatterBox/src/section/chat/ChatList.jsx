@@ -68,9 +68,10 @@ const ChatList = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(UpdateFriends(List));
-  }, []);
+  }, [dispatch]);
 
-  const { friends } = useSelector((state) => state.app);
+  const friends = useSelector((state) => state.app?.friends ?? []);
+
   console.log(friends);
 
   return (
@@ -100,9 +101,10 @@ const ChatList = () => {
 
         <div className="no-scrollbar overflow-auto max-h-full space-y-2.5">
           {/* Chat List Item */}
-          {friends.map((user) => {
-            return <ChatTab key={user.id} user={user} />;
-          })}
+          {friends.length !== 0 &&
+            friends.map((user) => {
+              return <ChatTab key={user.id} user={user} />;
+            })}
         </div>
       </div>
     </div>
