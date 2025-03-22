@@ -8,45 +8,56 @@ import User05 from "../../assets/images/user/user-05.png";
 import User06 from "../../assets/images/user/user-06.png";
 import User07 from "../../assets/images/user/user-07.png";
 import User08 from "../../assets/images/user/user-08.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import ChatTab from "../../components/Chat/ChatTab";
+import { useDispatch, useSelector } from "react-redux";
+import { UpdateFriends } from "../../redux/slices/app";
 
 const List = [
   {
+    id: 1,
     imgSrc: User01,
     name: "Henry Dholi",
     message: "I cam across your profile and...",
   },
   {
+    id: 2,
     imgSrc: User02,
     name: "Mariya Desoja",
     message: "I like your confidence 💪",
   },
   {
+    id: 3,
     imgSrc: User03,
     name: "Robert Jhon",
     message: "Can you share your offer?",
   },
   {
+    id: 4,
     imgSrc: User04,
     name: "Cody Fisher",
     message: `I'm waiting for you response!`,
   },
   {
+    id: 5,
     imgSrc: User05,
     name: "Jenny Wilson",
     message: "I cam across your profile and...",
   },
   {
+    id: 6,
     imgSrc: User06,
     name: "Robert Jhon",
     message: "Can you share your offer?",
   },
   {
+    id: 7,
     imgSrc: User07,
     name: "Cody Fisher",
     message: `I'm waiting for you response!`,
   },
   {
+    id: 8,
     imgSrc: User08,
     name: "Jenny Wilson",
     message: "I cam across your profile and...",
@@ -54,7 +65,14 @@ const List = [
 ];
 
 const ChatList = () => {
-  const [selected, setSelected] = useState(0);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(UpdateFriends(List));
+  }, []);
+
+  const { friends } = useSelector((state) => state.app);
+  console.log(friends);
+
   return (
     <div className="hidden h-full flex-col xl:flex xl:w-1/4">
       <div className="sticky border-b border-stroke dark:border-strokedark px-6 py-7.5 flex flex-row">
@@ -82,37 +100,8 @@ const ChatList = () => {
 
         <div className="no-scrollbar overflow-auto max-h-full space-y-2.5">
           {/* Chat List Item */}
-          {List.map((user, item) => {
-            return (
-              <div
-                className={`flex cursor-pointer items-center rounded px-4 py-2 dark:hover:bg-strokedark ${selected === item ? "bg-gray dark:bg-boxdark-2": "hover:bg-gray-2 dark:hover:bg-boxdark-2/90"}`}
-                key={item}
-                onClick={() => {
-                  setSelected(item);
-                }}
-              >
-                <div className="relative mr-3.5 h-11 w-full max-w-11 rounded-full ">
-                  <img
-                    src={user.imgSrc}
-                    alt="Profile"
-                    className="h-full w-full rounded-full object-cover object-center"
-                  />
-                  <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-gray-2 bg-success"></span>
-                </div>
-
-                <div className="w-full">
-                  <h5 className="text-sm font-medium text-black dark:text-white">
-                    {user.name}
-                  </h5>
-
-                  <p className="text-sm">
-                    {user.message}
-                  </p>
-
-
-                </div>
-              </div>
-            );
+          {friends.map((user) => {
+            return <ChatTab key={user.id} user={user} />;
           })}
         </div>
       </div>

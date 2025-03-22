@@ -27,33 +27,41 @@
 
 // export default Messages;
 
-import React from 'react'
-import { ChatList, Inbox } from '../section/chat'
+import React from "react";
+import { ChatList, Inbox } from "../section/chat";
 import DocumentPicker from "../components/DocumentPicker";
 import GifModal from "../components/GifModal";
 import MediaPicker from "../components/MediaPicker";
 import VoiceRecorder from "../components/VoiceRecorder";
+import { useSelector } from "react-redux";
+import NoChatSVG from "../assets/Illustration/NoChat";
 
 const Messages = () => {
+  const { chat_type, room_id } = useSelector((store) => store.app);
   return (
     <>
-      <div className='flex w-full'>
+      <div className="flex w-full">
         {/* ChatList */}
         <ChatList />
 
         {/* Inbox */}
-        <Inbox />
+        {room_id !== null && chat_type === "individual" ? (
+          <Inbox />
+        ) : (
+          <div className="flex h-full flex-1 flex-col justify-center items-center">
+            <NoChatSVG />
+            <div>Select a conversation or start a new one</div>
+          </div>
+        )}
 
         <GifModal />
 
         <VoiceRecorder />
         <MediaPicker />
         <DocumentPicker />
-
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Messages
-
+export default Messages;
