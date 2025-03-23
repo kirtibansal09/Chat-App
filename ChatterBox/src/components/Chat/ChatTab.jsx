@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectConversation } from "../../redux/slices/app";
+import userImage from "../../assets/images/user/user-02.png";
 
 function ChatTab({ user }) {
   const dispatch = useDispatch();
@@ -19,11 +20,15 @@ function ChatTab({ user }) {
     >
       <div className="relative mr-3.5 h-11 w-full max-w-11 rounded-full ">
         <img
-          src={user.imgSrc}
+          src={user.imgSrc || userImage}
           alt="Profile"
           className="h-full w-full rounded-full object-cover object-center"
         />
-        <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-gray-2 bg-success"></span>
+        <span
+          className={`absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-gray-2 ${
+            user.status === "Offline" ? "bg-slate-400" : "bg-success"
+          }`}
+        ></span>
       </div>
 
       <div className="w-full">

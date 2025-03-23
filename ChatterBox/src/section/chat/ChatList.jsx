@@ -12,67 +12,77 @@ import { useEffect, useState } from "react";
 import ChatTab from "../../components/Chat/ChatTab";
 import { useDispatch, useSelector } from "react-redux";
 import { UpdateFriends } from "../../redux/slices/app";
+import {
+  FetchDirectConversations,
+  GetAllUsers,
+} from "../../redux/slices/conversation";
 
-const List = [
-  {
-    id: 1,
-    imgSrc: User01,
-    name: "Henry Dholi",
-    message: "I cam across your profile and...",
-  },
-  {
-    id: 2,
-    imgSrc: User02,
-    name: "Mariya Desoja",
-    message: "I like your confidence 💪",
-  },
-  {
-    id: 3,
-    imgSrc: User03,
-    name: "Robert Jhon",
-    message: "Can you share your offer?",
-  },
-  {
-    id: 4,
-    imgSrc: User04,
-    name: "Cody Fisher",
-    message: `I'm waiting for you response!`,
-  },
-  {
-    id: 5,
-    imgSrc: User05,
-    name: "Jenny Wilson",
-    message: "I cam across your profile and...",
-  },
-  {
-    id: 6,
-    imgSrc: User06,
-    name: "Robert Jhon",
-    message: "Can you share your offer?",
-  },
-  {
-    id: 7,
-    imgSrc: User07,
-    name: "Cody Fisher",
-    message: `I'm waiting for you response!`,
-  },
-  {
-    id: 8,
-    imgSrc: User08,
-    name: "Jenny Wilson",
-    message: "I cam across your profile and...",
-  },
-];
+// const List = [
+//   {
+//     id: 1,
+//     imgSrc: User01,
+//     name: "Henry Dholi",
+//     message: "I cam across your profile and...",
+//   },
+//   {
+//     id: 2,
+//     imgSrc: User02,
+//     name: "Mariya Desoja",
+//     message: "I like your confidence 💪",
+//   },
+//   {
+//     id: 3,
+//     imgSrc: User03,
+//     name: "Robert Jhon",
+//     message: "Can you share your offer?",
+//   },
+//   {
+//     id: 4,
+//     imgSrc: User04,
+//     name: "Cody Fisher",
+//     message: `I'm waiting for you response!`,
+//   },
+//   {
+//     id: 5,
+//     imgSrc: User05,
+//     name: "Jenny Wilson",
+//     message: "I cam across your profile and...",
+//   },
+//   {
+//     id: 6,
+//     imgSrc: User06,
+//     name: "Robert Jhon",
+//     message: "Can you share your offer?",
+//   },
+//   {
+//     id: 7,
+//     imgSrc: User07,
+//     name: "Cody Fisher",
+//     message: `I'm waiting for you response!`,
+//   },
+//   {
+//     id: 8,
+//     imgSrc: User08,
+//     name: "Jenny Wilson",
+//     message: "I cam across your profile and...",
+//   },
+// ];
 
 const ChatList = () => {
+  const authToken = useSelector((store) => store.auth.token);
+
   const dispatch = useDispatch();
+  const allUsers = useSelector(
+    (store) => store.conversation.direct_chat.conversations
+  );
+
   useEffect(() => {
-    dispatch(UpdateFriends(List));
-  }, [dispatch]);
+    // get all the users
+    dispatch(GetAllUsers(authToken));
+    console.log("ALL USERS _>", allUsers);
+  }, []);
 
-  const friends = useSelector((state) => state.app?.friends ?? []);
-
-  console.log(friends);
+  console.log(allUsers);
 
   return (
     <div className="hidden h-full flex-col xl:flex xl:w-1/4">
@@ -101,8 +111,8 @@ const ChatList = () => {
 
         <div className="no-scrollbar overflow-auto max-h-full space-y-2.5">
           {/* Chat List Item */}
-          {friends.length !== 0 &&
-            friends.map((user) => {
+          {allUsers.length > 0 &&
+            allUsers.map((user) => {
               return <ChatTab key={user.id} user={user} />;
             })}
         </div>
