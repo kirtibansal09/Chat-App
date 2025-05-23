@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axios";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { DeSelectConversation, UpdateFriends } from "./app";
+import { useDispatch } from "react-redux";
 
 const initialState = {
   isLoading: false,
@@ -29,12 +31,16 @@ const slice = createSlice({
       state.token = null;
       state.isLoggedIn = false;
     },
+    setUserId(state, action) {
+      state.user.id = action.payload;
+    },
   },
 });
 
 export default slice.reducer;
 
-const { setError, setLoading, loginSuccess, logoutSuccess } = slice.actions;
+const { setError, setLoading, loginSuccess, logoutSuccess, setUserId } =
+  slice.actions;
 
 // ** REGISTER USER
 export function RegisterUser(formData, navigate) {
@@ -174,9 +180,10 @@ export function LoginUser(formValues, navigate) {
       .then(function (response) {
         console.log(response.data);
 
-        const { token, message } = response.data;
+        const { token, message, user_id } = response.data;
 
         dispatch(loginSuccess(token));
+        dispatch(setUserId(user_id));
 
         toast.success(message || "Logged In Successfully!");
       })
@@ -198,8 +205,11 @@ export function LoginUser(formValues, navigate) {
 
 export function LogoutUser(navigate) {
   return async (dispatch, getState) => {
+    dispatch(DeSelectConversation());
+    dispatch(UpdateFriends([]));
     try {
       dispatch(logoutSuccess());
+      dispatch(setUserId(null));
       navigate("/");
       toast.success("Logged out successfully!");
     } catch (error) {
