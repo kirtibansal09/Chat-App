@@ -17,6 +17,9 @@ const initialState = {
   },
   chat_type: null, // individual / group
   room_id: null,
+  current_conversation: null, // Store the current conversation data
+  current_messages: [], // Store messages for the current conversation
+  typing_users: {}, // Store typing status for conversations
 };
 
 const slice = createSlice({
@@ -46,11 +49,43 @@ const slice = createSlice({
     selectConversation(state, action) {
       state.chat_type = "individual";
       state.room_id = action.payload.room_id;
+      state.current_conversation = action.payload.conversation || null;
+      state.current_messages = action.payload.conversation?.messages || [];
     },
     // deselecting chat when user logs out
     deselectConversation(state, action) {
       state.chat_type = null;
       state.room_id = null;
+      state.current_conversation = null;
+      state.current_messages = [];
+      state.typing_users = {};
+    },
+    // add new message to current conversation
+    addMessage(state, action) {
+      state.current_messages.push(action.payload);
+    },
+    // update messages for current conversation
+    updateMessages(state, action) {
+      state.current_messages = action.payload;
+    },
+    // typing indicators
+    setTyping(state, action) {
+      const { conversationId, userId, isTyping } = action.payload;
+
+      // Ensure typing_users object exists
+      if (!state.typing_users) {
+        state.typing_users = {};
+      }
+
+      if (!state.typing_users[conversationId]) {
+        state.typing_users[conversationId] = {};
+      }
+
+      if (isTyping) {
+        state.typing_users[conversationId][userId] = true;
+      } else {
+        delete state.typing_users[conversationId][userId];
+      }
     },
   },
 });
@@ -87,9 +122,62 @@ export const SelectConversation = (value) => {
   };
 };
 
+// Start or get existing conversation
+export const StartConversation = (userId, authToken) => async (dispatch) => {
+  if (!authToken) {
+    console.log("NO AUTH TOKEN FOUND!");
+    return;
+  }
+
+  try {
+    console.log("STARTING CONVERSATION WITH USER:", userId);
+    const response = await axiosInstance.post(
+      "/user/start-conversation",
+      { userId },
+      {
+        headers: { authorization: `Bearer ${authToken}` },
+      }
+    );
+
+    const { conversation } = response.data.data;
+    console.log("CONVERSATION DATA:", conversation);
+
+    // Select the conversation with the conversation data
+    dispatch(SelectConversation({
+      room_id: userId,
+      conversation: conversation
+    }));
+
+    return conversation;
+  } catch (error) {
+    console.error("Error starting conversation:", error);
+    toast.error("Failed to start conversation");
+  }
+};
+
 export const DeSelectConversation = () => {
   return (dispatch, getState) => {
     dispatch(slice.actions.deselectConversation());
+  };
+};
+
+// Message actions
+export const AddMessage = (message) => {
+  return (dispatch, getState) => {
+    dispatch(slice.actions.addMessage(message));
+  };
+};
+
+export const UpdateMessages = (messages) => {
+  return (dispatch, getState) => {
+    dispatch(slice.actions.updateMessages(messages));
+  };
+};
+
+// Typing actions
+export const SetTyping = (conversationId, userId, isTyping) => {
+  return (dispatch, getState) => {
+    dispatch(slice.actions.setTyping({ conversationId, userId, isTyping }));
   };
 };
 
@@ -111,7 +199,7 @@ export const GetFriends = (authToken) => async (dispatch) => {
     if (response.data && response.data.status === "success") {
       const friends = response.data.data.friends || [];
       console.log("Friends list:", friends);
-      
+
       // Format friends for UI
       const formattedFriends = friends.map(friend => ({
         id: friend._id,
@@ -120,7 +208,7 @@ export const GetFriends = (authToken) => async (dispatch) => {
         avatar: friend.avatar,
         status: friend.status || "Offline"
       }));
-      
+
       dispatch(slice.actions.updateFriends(formattedFriends));
       return formattedFriends;
     }
@@ -147,7 +235,7 @@ export const GetFriendRequests = (authToken) => async (dispatch) => {
 
     if (response.data && response.data.status === "success") {
       const { incoming, outgoing } = response.data.data;
-      
+
       dispatch(slice.actions.updateFriendRequests({ incoming, outgoing }));
       return incoming; // Return incoming requests for component use
     }

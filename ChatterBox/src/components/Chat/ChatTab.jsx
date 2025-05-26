@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { SelectConversation, SendFriendRequest, RemoveFriend } from '../../redux/slices/app';
-import { UserPlus, UserMinus, DotsThree } from '@phosphor-icons/react';
+import { StartConversation, SendFriendRequest, RemoveFriend } from '../../redux/slices/app';
+import { UserPlus, DotsThree } from '@phosphor-icons/react';
+import ChatTabDropdown from './ChatTabDropdown';
+import { toast } from 'react-toastify';
 
 const ChatTab = ({ user, isFriend = false }) => {
   const dispatch = useDispatch();
   const authToken = useSelector((store) => store?.auth?.token);
-  const [showOptions, setShowOptions] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const triggerRef = useRef(null);
+
   // Ensure we have all required properties with fallbacks
   const userId = user?.id || user?._id || "unknown";
   const userName = user?.name || "Unknown User";
   const userStatus = user?.status || "Offline";
   const userImage = user?.avatar || "https://via.placeholder.com/40";
-  
-  const handleSelectConversation = () => {
-    dispatch(SelectConversation({ room_id: userId }));
+
+  const handleSelectConversation = async () => {
+    // Only allow conversations with friends
+    if (!isFriend) {
+      toast.info(`Add ${userName} as a friend to start a conversation`);
+      return;
+    }
+
+    try {
+      await dispatch(StartConversation(userId, authToken));
+    } catch (error) {
+      console.error("Error selecting conversation:", error);
+    }
   };
 
   const handleSendFriendRequest = async (e) => {
@@ -26,7 +39,7 @@ const ChatTab = ({ user, isFriend = false }) => {
       await dispatch(SendFriendRequest(userId, authToken));
     } finally {
       setIsLoading(false);
-      setShowOptions(false);
+      setShowDropdown(false);
     }
   };
 
@@ -37,17 +50,17 @@ const ChatTab = ({ user, isFriend = false }) => {
       await dispatch(RemoveFriend(userId, authToken));
     } finally {
       setIsLoading(false);
-      setShowOptions(false);
+      setShowDropdown(false);
     }
   };
 
-  const toggleOptions = (e) => {
+  const toggleDropdown = (e) => {
     e.stopPropagation();
-    setShowOptions(!showOptions);
+    setShowDropdown(!showDropdown);
   };
 
   return (
-    <div 
+    <div
       className="flex cursor-pointer items-center gap-5 rounded-md px-4 py-3 hover:bg-gray-2 dark:hover:bg-boxdark-2 relative"
       onClick={handleSelectConversation}
     >
@@ -67,65 +80,45 @@ const ChatTab = ({ user, isFriend = false }) => {
           <h5 className="font-medium text-black dark:text-white">
             {userName}
           </h5>
-          <p
-            className="!mt-0.5 text-sm"
-            dangerouslySetInnerHTML={{ __html: user.message }}
-          ></p>
+          <p className="text-sm text-gray-5 dark:text-gray-4">
+            {userStatus}
+          </p>
         </div>
-        <div className="!ml-2">
+
+        <div className="relative flex">
           {isFriend ? (
-            <div className="!flex !items-center !gap-2">
-              <button
-                className="!h-8 !w-8 !rounded-full !bg-gray-1 !p-!2 !hover:bg-gray-2"
-                onClick={handleRemoveFriend}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="!h-!4 !w-!4 !animate-spin !border-!2 !border-t!2 !border-gray-!5 !rounded-full"></div>
-                ) : (
-                  <UserMinus size={16} className="!text-gray-!5" />
-                )}
-              </button>
-              <button
-                className="!h-!8 !w-!8 !rounded-full !bg-gray-!1 !p-!2 !hover:bg-gray-!2"
-                onClick={toggleOptions}
-              >
-                <DotsThree size={16} className="!text-gray-!5" />
-              </button>
-            </div>
+            <button
+              ref={triggerRef}
+              className="h-8 w-8 rounded-full bg-gray-1 dark:bg-boxdark-2 p-2 hover:bg-gray-2 dark:hover:bg-boxdark-3 flex items-center justify-center text-[#98A6AD] hover:text-body"
+              onClick={toggleDropdown}
+              disabled={isLoading}
+            >
+              <DotsThree size={16} weight="bold" />
+            </button>
           ) : (
             <button
-              className="!h-!8 !w-!8 !rounded-full !bg-gray-!1 !p-!2 !hover:bg-gray-!2"
+              className="h-8 w-8 rounded-full bg-primary p-2 hover:bg-opacity-90 flex items-center justify-center"
               onClick={handleSendFriendRequest}
               disabled={isLoading}
             >
               {isLoading ? (
-                <div className="!h-!4 !w-!4 !animate-spin !border-!2 !border-t!2 !border-gray-!5 !rounded-full"></div>
+                <div className="h-4 w-4 animate-spin border-2 border-t-2 border-white rounded-full"></div>
               ) : (
-                <UserPlus size={16} className="!text-gray-!5" />
+                <UserPlus size={16} className="text-white" />
               )}
             </button>
           )}
+
+          {/* Portal-based dropdown */}
+          <ChatTabDropdown
+            isOpen={showDropdown && isFriend}
+            onClose={() => setShowDropdown(false)}
+            triggerRef={triggerRef}
+            onRemoveFriend={handleRemoveFriend}
+            isLoading={isLoading}
+          />
         </div>
       </div>
-      {showOptions && (
-        <div className="!absolute !right-!2 !top-!10 !z-!10 !w-!32 !rounded-!2 !bg-white !shadow-!2 !dark:bg-boxdark-!2 !dark:shadow-!2 !flex !flex-col !gap-!2 !p-!2 !min-w-!24 !max-w-!32 !!z-!10">
-          <button
-            className="!w-full !rounded-!2 !py-!2 !text-sm !font-medium !text-gray-!7 !hover:!bg-gray-!1 !dark:!text-white !dark:!hover:!bg-boxdark-!3"
-            onClick={handleSendFriendRequest}
-            disabled={isLoading}
-          >
-            {isLoading ? "Sending..." : "Send Friend Request"}
-          </button>
-          <button
-            className="!w-full !rounded-!2 !py-!2 !text-sm !font-medium !text-gray-!7 !hover:!bg-gray-!1 !dark:!text-white !dark:!hover:!bg-boxdark-!3"
-            onClick={handleRemoveFriend}
-            disabled={isLoading}
-          >
-            {isLoading ? "Removing..." : "Remove Friend"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
