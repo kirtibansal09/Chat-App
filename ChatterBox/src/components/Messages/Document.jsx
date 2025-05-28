@@ -1,14 +1,55 @@
-import { Check, Checks, DownloadSimple, File } from '@phosphor-icons/react'
-import React from 'react'
+import React, { useState } from 'react';
+import { Check, Checks, DownloadSimple, File } from '@phosphor-icons/react';
 
-function Document({
-  incoming,
-  author,
-  timestamp,
-  read_receipt
-}) {
+const Document = ({ author, document, content, read_receipt, incoming, timestamp }) => {
+  console.log('Rendering document message:', { author, document, content, read_receipt, incoming, timestamp });
+  const [viewError, setViewError] = useState(null);
 
+  // Handle document download/view
+  const handleDownload = () => {
+    if (document && document.url) {
+      try {
+        // Use the URL as provided, or construct it if it's a relative path
+        let documentUrl = document.url;
+        
+        // If the URL is relative (starts with /), prepend the server URL
+        if (documentUrl.startsWith('/')) {
+          // Get the backend server URL from environment or use a default
+          const serverUrl = process.env.REACT_APP_API_URL || window.location.origin;
+          documentUrl = `${serverUrl}${documentUrl}`;
+        }
+        
+        console.log('Document view URL:', documentUrl);
+        
+        // Open in a new tab
+        window.open(documentUrl, '_blank');
+      } catch (error) {
+        console.error('Error viewing document:', error);
+        setViewError('Failed to view document. Please try again.');
+      }
+    } else {
+      console.error('Document URL is missing:', document);
+      setViewError('Document URL is missing or invalid.');
+    }
+  };
 
+  // Get document name (handle both originalname and name properties)
+  const documentName = document?.originalname || document?.name || 'Document';
+  
+  // Check if document object exists
+  if (!document) {
+    console.error('Document object is missing in message');
+    return (
+      <div className={`max-w-125 w-fit ${!incoming && 'ml-auto'}`}>
+        <p className='mb-2.5 text-sm font-medium capitalize'>{incoming ? author : ''}</p>
+        <div className={`mb-2.5 rounded-2xl ${incoming ? 'rounded-tl-none bg-gray dark:bg-boxdark-2' : 'rounded-br-none bg-primary text-white'} px-5 py-3`}>
+          <p>Error: Document not available</p>
+        </div>
+        <p className='text-xs'>{timestamp}</p>
+      </div>
+    );
+  }
+  
   return (
     incoming ? (
       <div className='max-w-125 w-fit'>
@@ -20,17 +61,20 @@ function Document({
                 <File size={20} />
               </div>
               <div className='flex flex-col'>
-                <div>admin_v1.0.zip</div>
-                <div className='text-sm font-medium'>12.5MB</div>
+                <div>{documentName}</div>
+                <div className='text-sm font-medium'>{document?.size ? `${Math.round(document.size / 1024)} KB` : ''}</div>
               </div>
             </div>
 
-            <button className='pl-5'>
-              <DownloadSimple />
-            </button>
+            <div className="flex space-x-2">
+              <button className='p-2' onClick={handleDownload}>
+                <DownloadSimple size={20} />
+              </button>
+            </div>
           </div>
 
-          <p>This is some text assosciated with this message</p>
+          {viewError && <p className="text-red-500 text-sm">{viewError}</p>}
+          {content && <p>{content}</p>}
         </div>
         <p className='text-xs'>{timestamp}</p>
       </div>
@@ -43,32 +87,30 @@ function Document({
                 <File size={20} />
               </div>
               <div className='flex flex-col'>
-                <div>admin_v1.0.zip</div>
-                <div className='text-sm font-medium'>12.5MB</div>
+                <div>{documentName}</div>
+                <div className='text-sm font-medium'>{document?.size ? `${Math.round(document.size / 1024)} KB` : ''}</div>
               </div>
             </div>
 
-            <button className='pl-5'>
-              <DownloadSimple />
-            </button>
+            <div className="flex space-x-2">
+              <button className='p-2' onClick={handleDownload}>
+                <DownloadSimple size={20} />
+              </button>
+            </div>
           </div>
 
-          <p>This is some text assosciated with this message</p>
+          {viewError && <p className="text-red-500 text-sm">{viewError}</p>}
+          {content && <p>{content}</p>}
         </div>
-        <div className="flex flex-row items-center justify-end space-x-2">
-          <div className={`${read_receipt !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
-            {read_receipt !== 'sent' ? (
-              <Checks weight="bold" size={18} />
-            ) : (
-              <Check weight="bold" size={18} />
-            )}
-          </div>
-          <p className="text-xs text-right">{timestamp}</p>
+        <div className="flex justify-end">
+          <p className='text-xs'>{timestamp}</p>
+          {read_receipt === "sent" && <Check className='text-xs ml-1' />}
+          {read_receipt === "delivered" && <Checks className='text-xs ml-1' />}
+          {read_receipt === "read" && <Checks className='text-xs ml-1 text-primary' />}
         </div>
       </div>
-
     )
-  )
-}
+  );
+};
 
 export default Document

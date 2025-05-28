@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios from 'axios';
 
-// CONFIGURE BASE URL
-const BASE_URL = "http://localhost:8000";
+// Make sure this matches your backend URL and port
+const BASE_URL = "http://localhost:8000"; 
 
 const axiosInstance = axios.create({ baseURL: BASE_URL });
 

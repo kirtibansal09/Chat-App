@@ -27,6 +27,7 @@ import {
 } from "../../components/Messages";
 import VideoRoom from "../../components/VideoRoom";
 import AudioRoom from "../../components/AudioRoom";
+import Media from '../../components/Messages/Media';
 
 const Inbox = () => {
   const dispatch = useDispatch();
@@ -85,6 +86,7 @@ const Inbox = () => {
     dispatch(ToggleAudioModal(true));
   };
 
+  // Handle sending message
   const handleSendMessage = (e) => {
     e.preventDefault();
 
@@ -101,14 +103,17 @@ const Inbox = () => {
       }
     };
 
-
+    console.log('Sending text message:', messageData);
 
     // Stop typing when sending message
     if (otherParticipant) {
       stopTyping(otherParticipant._id, current_conversation._id);
     }
 
+    // Send message only once
     sendMessage(messageData);
+    
+    // Clear input field
     setMessageText("");
   };
 
@@ -153,6 +158,77 @@ const Inbox = () => {
       lastConversationId.current = current_conversation._id;
     }
   }, [current_conversation, isConnected, requestChatHistory]);
+
+  // Add debug logging for messages
+  useEffect(() => {
+    if (current_messages && current_messages.length > 0) {
+      console.log('Current messages:', current_messages);
+      // Log the last message to see its structure
+      const lastMessage = current_messages[current_messages.length - 1];
+      console.log('Last message:', {
+        id: lastMessage._id,
+        author: lastMessage.author,
+        authorName: typeof lastMessage.author === 'object' ? lastMessage.author.name : 'Unknown',
+        type: lastMessage.type,
+        content: lastMessage.content
+      });
+    }
+  }, [current_messages]);
+
+  // Render message component based on type
+  const renderMessage = (message) => {
+    // Determine if message is incoming or outgoing
+    const messageAuthorId = message.author?._id || message.author;
+    const currentUserId = currentUser.id || currentUser._id;
+    const isIncoming = messageAuthorId !== currentUserId;
+    
+    // Get author name - ensure we handle both object and string author
+    const authorName = typeof message.author === 'object' 
+      ? message.author.name 
+      : 'Unknown';
+    
+    console.log('Rendering message:', {
+      messageId: message._id,
+      authorId: messageAuthorId,
+      currentUserId,
+      isIncoming,
+      authorName,
+      type: message.type
+    });
+
+    // Format timestamp
+    const timestamp = new Date(message.createdAt).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    switch (message.type) {
+      case "Text":
+        return (
+          <TextMessage
+            key={message._id}
+            author={authorName}
+            content={message.content || ""}
+            read_receipt="delivered"
+            incoming={isIncoming}
+            timestamp={timestamp}
+          />
+        );
+      case "Document":
+        return (
+          <Document
+            key={message._id}
+            author={authorName}
+            document={message.document}
+            content={message.content}
+            read_receipt="delivered"
+            incoming={isIncoming}
+            timestamp={timestamp}
+          />
+        );
+      // Other cases...
+    }
+  };
 
   return (
     <>
@@ -206,19 +282,62 @@ const Inbox = () => {
               // TODO: Implement proper read receipts based on user activity
               let readReceipt = "delivered";
 
+              console.log('Rendering message:', message);
 
-
-              return (
-                <div key={message._id || index}>
-                  <TextMessage
-                    author={message.author?.name || "Unknown"}
-                    content={message.content || ""}
-                    read_receipt={isIncoming ? "read" : readReceipt}
-                    incoming={isIncoming}
-                    timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
-                  />
-                </div>
-              );
+              // Render different message types based on the message.type
+              if (message.type === 'Document') {
+                return (
+                  <div key={message._id || index}>
+                    <DocumentMessage
+                      author={message.author?.name || "Unknown"}
+                      document={message.document}
+                      content={message.content}
+                      read_receipt={isIncoming ? "read" : readReceipt}
+                      incoming={isIncoming}
+                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
+                    />
+                  </div>
+                );
+              } else if (message.type === 'Media') {
+                return (
+                  <div key={message._id || index}>
+                    <Media
+                      author={message.author?.name || "Unknown"}
+                      media={message.media || []}
+                      content={message.content}
+                      read_receipt={isIncoming ? "read" : readReceipt}
+                      incoming={isIncoming}
+                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
+                      giphyUrl={message.giphyUrl}
+                    />
+                  </div>
+                );
+              } else if (message.type === 'Audio') {
+                return (
+                  <div key={message._id || index}>
+                    <VoiceMessage
+                      author={message.author?.name || "Unknown"}
+                      audioUrl={message.audioUrl}
+                      read_receipt={isIncoming ? "read" : readReceipt}
+                      incoming={isIncoming}
+                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
+                    />
+                  </div>
+                );
+              } else {
+                // Default to text message
+                return (
+                  <div key={message._id || index}>
+                    <TextMessage
+                      author={message.author?.name || "Unknown"}
+                      content={message.content || ""}
+                      read_receipt={isIncoming ? "read" : readReceipt}
+                      incoming={isIncoming}
+                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
+                    />
+                  </div>
+                );
+              }
             })
           ) : (
             // Show placeholder when no messages
