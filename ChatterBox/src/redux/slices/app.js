@@ -1,13 +1,16 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAction } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axios";
 import { toast } from "react-toastify";
 
+// Create the action outside the slice
+export const setSelectedGifUrl = createAction('app/setSelectedGifUrl');
+
 const initialState = {
   modals: {
-    gif: false,
-    audio: false,
     media: false,
     doc: false,
+    gif: false,  // Changed from giphy to gif to match updateGifModal
+    audio: false,
   },
   selectedGifUrl: "",
   friends: [],
@@ -29,6 +32,10 @@ const slice = createSlice({
     updateGifModal(state, action) {
       state.modals.gif = action.payload.value;
       state.selectedGifUrl = action.payload.url;
+    },
+    // Add a reducer to handle the setSelectedGifUrl action
+    setGifUrl(state, action) {
+      state.selectedGifUrl = action.payload;
     },
     updateAudioModal(state, action) {
       state.modals.audio = action.payload;
@@ -62,7 +69,8 @@ const slice = createSlice({
     },
     // add new message to current conversation
     addMessage(state, action) {
-      state.current_messages.push(action.payload);
+      console.log('Reducer: Adding message to state:', action.payload);
+      state.current_messages = [...state.current_messages, action.payload];
     },
     // update messages for current conversation
     updateMessages(state, action) {
@@ -87,7 +95,25 @@ const slice = createSlice({
         delete state.typing_users[conversationId][userId];
       }
     },
+    toggleMediaModal(state, action) {
+      state.modals.media = action.payload;
+    },
+    toggleDocumentModal(state, action) {
+      state.modals.doc = action.payload;
+    },
+    toggleGifModal(state, action) {  // Changed from toggleGiphyModal to match the state
+      state.modals.gif = action.payload;
+    },
+    toggleAudioModal(state, action) {
+      state.modals.audio = action.payload;
+    },
   },
+  // Add extraReducers to handle the external action
+  extraReducers: (builder) => {
+    builder.addCase(setSelectedGifUrl, (state, action) => {
+      state.selectedGifUrl = action.payload;
+    });
+  }
 });
 
 export default slice.reducer;
@@ -141,6 +167,7 @@ export const StartConversation = (userId, authToken) => async (dispatch) => {
 
     const { conversation } = response.data.data;
     console.log("CONVERSATION DATA:", conversation);
+    console.log("CONVERSATION ID:", conversation._id);
 
     // Select the conversation with the conversation data
     dispatch(SelectConversation({
@@ -162,10 +189,19 @@ export const DeSelectConversation = () => {
 };
 
 // Message actions
-export const AddMessage = (message) => {
-  return (dispatch, getState) => {
-    dispatch(slice.actions.addMessage(message));
-  };
+export const AddMessage = (message) => (dispatch, getState) => {
+  console.log('Adding message to Redux store:', message);
+  
+  const { current_conversation } = getState().app;
+  
+  if (!current_conversation) {
+    console.error('No current conversation to add message to');
+    return;
+  }
+  
+  console.log('Current conversation ID:', current_conversation._id);
+  
+  dispatch(slice.actions.addMessage(message));
 };
 
 export const UpdateMessages = (messages) => {
@@ -402,4 +438,156 @@ export const RemoveFriend = (friendId, authToken) => async (dispatch) => {
     toast.error(error?.response?.data?.message || "Failed to remove friend");
   }
   return false;
+};
+
+// Add these actions to your app.js slice
+
+// Upload media file
+export const UploadMedia = (file, token) => async (dispatch) => {
+  if (!token) {
+    console.error("NO AUTH TOKEN PROVIDED FOR UPLOAD!");
+    return null;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await axiosInstance.post(
+      "/upload/media",
+      formData,
+      {
+        headers: { 
+          authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+
+    if (response.data && response.data.status === "success") {
+      toast.success("Media uploaded successfully");
+      return response.data.data;
+    } else {
+      toast.error(response.data?.message || "Failed to upload media");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error uploading media:", error);
+    toast.error(`Failed to upload media: ${error.response?.data?.message || error.message}`);
+    return null;
+  }
+};
+
+// Upload document file
+export const UploadDocument = (file, token) => async (dispatch) => {
+  if (!token) {
+    console.error("NO AUTH TOKEN PROVIDED FOR UPLOAD!");
+    return null;
+  }
+
+  try {
+    console.log('Creating form data for document upload');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    console.log('Sending document upload request');
+    const response = await axiosInstance.post(
+      "/upload/document",  // Change this to match your backend route structure
+      formData,
+      {
+        headers: { 
+          authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+
+    console.log('Document upload response:', response.data);
+
+    if (response.data && response.data.status === "success") {
+      toast.success("Document uploaded successfully");
+      return response.data.data;
+    } else {
+      toast.error(response.data?.message || "Failed to upload document");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error uploading document:", error);
+    console.error("Error response:", error.response?.data);
+    toast.error(`Failed to upload document: ${error.response?.data?.message || error.message}`);
+    return null;
+  }
+};
+
+// Send GIF message
+export const SendGifMessage = (gifUrl, message, conversationId, token) => async (dispatch) => {
+  if (!token) {
+    console.error("NO AUTH TOKEN PROVIDED FOR GIF SEND!");
+    return null;
+  }
+
+  if (!gifUrl) {
+    console.error("NO GIF URL PROVIDED!");
+    return null;
+  }
+
+  if (!conversationId) {
+    console.error("NO CONVERSATION ID PROVIDED!");
+    return null;
+  }
+
+  try {
+    console.log('Sending GIF message with URL:', gifUrl);
+    
+    // Prepare the message data
+    const messageData = {
+      conversationId: conversationId,
+      message: {
+        content: message || 'Sent a GIF',
+        type: 'Media', // Use Media type for GIFs
+        giphyUrl: gifUrl
+      }
+    };
+
+    // Use socket to send the message
+    const socket = getSocket();
+    
+    return new Promise((resolve, reject) => {
+      socket.emit('new-message', messageData, (response) => {
+        if (response && response.status === 'error') {
+          console.error('Error sending GIF message:', response.message);
+          toast.error(`Failed to send GIF: ${response.message}`);
+          reject(response.message);
+        } else {
+          console.log('GIF message sent successfully');
+          toast.success("GIF sent successfully");
+          resolve(response);
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error sending GIF message:", error);
+    toast.error(`Failed to send GIF: ${error.message}`);
+    return null;
+  }
+};
+
+// Helper function to get socket instance
+const getSocket = () => {
+  // This is a simple implementation - you might need to adjust based on how you manage sockets
+  return window.socket; // Assuming socket is stored globally
+};
+
+// Export the actions
+export const { 
+  toggleMediaModal,
+  toggleDocumentModal,
+  toggleGifModal,  // Changed from toggleGiphyModal
+  toggleAudioModal,
+  setGifUrl
+} = slice.actions;
+
+// Or if you want to keep the original export names:
+export const ToggleGiphyModal = (value) => (dispatch) => {
+  dispatch(slice.actions.toggleGifModal(value));
 };

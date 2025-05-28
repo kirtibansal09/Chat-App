@@ -115,14 +115,98 @@ export const SocketProvider = ({ children }) => {
     };
   }, [isLoggedIn, token, socket]);
 
+  // Set up socket event listeners
+  useEffect(() => {
+    if (!socket) return;
+
+    // First, remove any existing listeners to prevent duplicates
+    socket.off('connect');
+    socket.off('disconnect');
+    socket.off('new-direct-chat');
+    socket.off('message-sent');
+    socket.off('chat-history');
+    socket.off('start-typing');
+    socket.off('stop-typing');
+    socket.off('error');
+
+    // Handle connection events
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setIsConnected(false);
+    });
+
+    // Handle new direct chat message
+    socket.on('new-direct-chat', (data) => {
+      console.log('New direct chat message received:', data);
+      handleNewMessage(data);
+    });
+
+    // Handle message sent confirmation
+    socket.on('message-sent', (data) => {
+      console.log('Message sent confirmation received:', data);
+      if (data.status === 'success' && data.message) {
+        console.log('Adding sent message to current conversation:', data.message);
+        dispatch(AddMessage(data.message));
+      }
+    });
+
+    // Handle chat history
+    socket.on('chat-history', (data) => {
+      console.log('Chat history received:', data);
+      handleChatHistory(data);
+    });
+
+    // Handle typing events
+    socket.on('start-typing', (data) => {
+      console.log('Start typing event received:', data);
+      if (data.conversationId && data.typingUserId) {
+        handleTypingEvent(data.conversationId, data.typingUserId, true);
+      }
+    });
+
+    socket.on('stop-typing', (data) => {
+      console.log('Stop typing event received:', data);
+      if (data.conversationId && data.typingUserId) {
+        handleTypingEvent(data.conversationId, data.typingUserId, false);
+      }
+    });
+
+    // Handle errors
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+      toast.error(error.message || 'Socket error occurred');
+    });
+
+    // Clean up event listeners on unmount
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('new-direct-chat');
+      socket.off('message-sent');
+      socket.off('chat-history');
+      socket.off('start-typing');
+      socket.off('stop-typing');
+      socket.off('error');
+    };
+  }, [socket, dispatch]);
+
   // Handle new message
   const handleNewMessage = (data) => {
     const { conversationId, message } = data;
-
-    // Only update if it's for the current conversation
+    
+    console.log('New message received:', data);
+    
+    // Only add the message if it's for the current conversation
     if (current_conversation && current_conversation._id === conversationId) {
       console.log('Adding message to current conversation:', message);
       dispatch(AddMessage(message));
+    } else {
+      console.log('Message is for a different conversation');
     }
   };
 
