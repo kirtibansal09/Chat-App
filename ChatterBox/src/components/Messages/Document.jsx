@@ -15,8 +15,8 @@ const Document = ({ author, document, content, read_receipt, incoming, timestamp
         // If the URL is relative (starts with /), prepend the server URL
         if (documentUrl.startsWith('/')) {
           // Get the backend server URL from environment or use a default
-          const serverUrl = process.env.REACT_APP_API_URL || window.location.origin;
-          documentUrl = `${serverUrl}${documentUrl}`;
+          // const serverUrl = process.env.REACT_APP_API_URL || window.location.origin;
+          documentUrl = `${import.meta.env.VITE_API_URL}${documentUrl}`;
         }
         
         console.log('Document view URL:', documentUrl);

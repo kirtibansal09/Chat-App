@@ -12,19 +12,68 @@ const GifModal = () => {
   const { socket } = useSocket();
 
   // Get modal state and selected GIF URL from Redux
-  const { gif } = useSelector((state) => state.app.modals);
-  const { selectedGifUrl } = useSelector((state) => state.app);
-  
-  // Get current conversation from Redux
-  const { current_conversation } = useSelector((state) => state.conversation);
-  
-  // Get user ID from auth state
+
+  const gif = useSelector((state) => state.app.modals.gif);
+  const selectedGifUrl = useSelector((state) => state.app.selectedGifUrl);
+  const current_conversation = useSelector(
+    (state) => state.app.current_conversation
+  );
   const { _id } = useSelector((state) => state.auth.user);
 
-  // Handle ESC key to close modal
+  // Reset sending & message if modal closes
   useEffect(() => {
-    const keyHandler = ({ keyCode }) => {
-      if (!gif || keyCode !== 27) return;
+    if (!gif) {
+      setSending(false);
+      setMessage("");
+    }
+  }, [gif]);
+
+  const handleSendGif = async () => {
+    if (!selectedGifUrl) {
+      console.error("No GIF selected");
+      return;
+    }
+
+    if (!current_conversation || !current_conversation._id) {
+      console.error("No active conversation");
+      return;
+    }
+
+    try {
+      setSending(true);
+
+      const messageData = {
+        conversationId: current_conversation._id,
+        message: {
+          author: _id,
+          content: message || "Sent a GIF",
+          type: "Media",
+          giphyUrl: selectedGifUrl,
+        },
+      };
+
+      console.log("Sending GIF message:", messageData);
+
+      socket.emit("new-message", messageData, (response) => {
+        setSending(false);
+
+        if (response && response.status === "error") {
+          console.error("Error sending GIF message:", response.message);
+        } else {
+          console.log("GIF message sent successfully");
+          setMessage("");
+          console.log("Closing modal now..."); // << Add this
+
+          dispatch(
+            ToggleGifModal({
+              value: false,
+              url: "",
+            })
+          );
+
+          console.log("Dispatch called"); // << Add this
+        }
+      });
 
       dispatch(
         ToggleGifModal({
@@ -32,59 +81,6 @@ const GifModal = () => {
           url: "",
         })
       );
-    };
-
-    document.addEventListener("keydown", keyHandler);
-    return () => document.removeEventListener("keydown", keyHandler);
-  }, [dispatch, gif]);
-
-  // Handle sending GIF
-  const handleSendGif = async () => {
-    if (!selectedGifUrl) {
-      console.error('No GIF selected');
-      return;
-    }
-    
-    if (!current_conversation || !current_conversation._id) {
-      console.error('No active conversation');
-      return;
-    }
-
-    try {
-      setSending(true);
-      
-      // Prepare message data
-      const messageData = {
-        conversationId: current_conversation._id,
-        message: {
-          author: _id,
-          content: message || 'Sent a GIF',
-          type: 'Media', // Use Media type for GIFs
-          giphyUrl: selectedGifUrl
-        }
-      };
-      
-      console.log('Sending GIF message:', messageData);
-      
-      // Send message via socket
-      socket.emit('new-message', messageData, (response) => {
-        setSending(false);
-        
-        if (response && response.status === 'error') {
-          console.error('Error sending GIF message:', response.message);
-        } else {
-          console.log('GIF message sent successfully');
-          
-          // Reset and close modal
-          setMessage('');
-          dispatch(
-            ToggleGifModal({
-              value: false,
-              url: "",
-            })
-          );
-        }
-      });
     } catch (error) {
       console.error("Failed to send GIF:", error);
       setSending(false);
@@ -138,9 +134,9 @@ const GifModal = () => {
             onChange={(e) => setMessage(e.target.value)}
           />
 
-          <button 
+          <button
             className={`p-2.5 border border-primary flex items-center justify-center rounded-lg bg-primary hover:bg-opacity-90 text-white ${
-              sending ? 'opacity-50 cursor-not-allowed' : ''
+              sending ? "opacity-50 cursor-not-allowed" : ""
             }`}
             onClick={handleSendGif}
             disabled={!selectedGifUrl || sending}

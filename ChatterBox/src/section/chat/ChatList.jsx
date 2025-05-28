@@ -216,7 +216,7 @@ const ChatList = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent py-2.5 pl-5 pr-3 text-sm outline-none"
+                 className="flex-1 bg-transparent py-2.5 pl-5 pr-3 text-sm outline-none"
               />
               <button
                 type="button"
