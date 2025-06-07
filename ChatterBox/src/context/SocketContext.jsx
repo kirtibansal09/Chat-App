@@ -148,6 +148,7 @@ export const SocketProvider = ({ children }) => {
 
     // Handle message sent confirmation
     socket.on('message-sent', (data) => {
+      console.log("THIS STEP WORKS PART 1")
       console.log('Message sent confirmation received:', data);
       if (data.status === 'success' && data.message) {
         console.log('Adding sent message to current conversation:', data.message);
@@ -203,6 +204,7 @@ export const SocketProvider = ({ children }) => {
     
     // Only add the message if it's for the current conversation
     if (current_conversation && current_conversation._id === conversationId) {
+      console.log("THIS STEP WORKS PART 2")
       console.log('Adding message to current conversation:', message);
       dispatch(AddMessage(message));
     } else {

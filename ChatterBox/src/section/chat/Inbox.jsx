@@ -162,7 +162,7 @@ const Inbox = () => {
   // Add debug logging for messages
   useEffect(() => {
     if (current_messages && current_messages.length > 0) {
-      console.log('Current messages:', current_messages);
+      // console.log('Current messages:', current_messages);
       // Log the last message to see its structure
       const lastMessage = current_messages[current_messages.length - 1];
       console.log('Last message:', {
@@ -282,7 +282,7 @@ const Inbox = () => {
               // TODO: Implement proper read receipts based on user activity
               let readReceipt = "delivered";
 
-              console.log('Rendering message:', message);
+              {/* console.log('Rendering message:', message); */}
 
               // Render different message types based on the message.type
               if (message.type === 'Document') {
