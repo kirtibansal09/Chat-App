@@ -115,6 +115,8 @@ export const SocketProvider = ({ children }) => {
     };
   }, [isLoggedIn, token, socket]);
 
+
+
   // Set up socket event listeners
   useEffect(() => {
     if (!socket) return;

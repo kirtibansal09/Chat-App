@@ -1,7 +1,10 @@
 import { Chat, Clock, DotsThreeVertical, VideoCamera, X } from "@phosphor-icons/react";
 import React from "react";
+import { useSelector } from "react-redux";
 
 function UserInfo({ handleToggleUserInfo }) {
+  const { currentUser } = useSelector((state) => state.user);
+
   return (
     <div className="border-l flex flex-col h-full border-stroke dark:border-strokedark">
       <div className="sticky border-b border-stroke dark:border-strokedark flex flex-row items-center justify-between w-full px-6 py-7.5">
@@ -16,15 +19,15 @@ function UserInfo({ handleToggleUserInfo }) {
       <div className="mx-auto my-8">
         <img
           className="w-44 h-44 rounded-lg object-cover object-center"
-          src="https://images.pexels.com/photos/416160/pexels-photo-416160.jpeg?auto=compress&cs=tinysrgb&w=600"
+          src={currentUser?.avatar}
         />
       </div>
 
       <div className="px-6 space-y-1">
         <div className="text-black dark:text-white text-xl font-medium">
-          Blake Jonathan
+          {currentUser?.name}
         </div>
-        <span className="text-body">Sales Manager</span>
+        <span className="text-body">{currentUser?.jobTitle}</span>
       </div>
 
       <div className="px-6 my-6">
@@ -46,6 +49,12 @@ function UserInfo({ handleToggleUserInfo }) {
         <button className=" border border-stroke dark:border-strokedark p-2 rounded-md flex flex-row items-center justify-center">
           <DotsThreeVertical size={20} />
         </button>
+      </div>
+
+      <div className="border-t border-stroke dark:border-strokedark px-6 py-6 space-y-4">
+        <div className="text-black dark:text-white font-semibold">About</div>
+        <div className="text-sm">{currentUser?.bio}</div>
+        <div className="text-sm text-body">{currentUser?.country}</div>
       </div>
     </div>
   );
