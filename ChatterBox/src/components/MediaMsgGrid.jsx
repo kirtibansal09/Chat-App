@@ -7,7 +7,7 @@ const MediaMsgGrid = ({ images, incoming }) => {
     const [imageErrors, setImageErrors] = useState({});
     
     useEffect(() => {
-        console.log('MediaMsgGrid received images:', images);
+        // console.log('MediaMsgGrid received images:', images);
         
         // Process images to ensure they have valid URLs
         if (images && images.length > 0) {
@@ -16,7 +16,7 @@ const MediaMsgGrid = ({ images, incoming }) => {
                 let imgSrc = image.imgSrc || image.url || '';
                 
                 // Debug the image source
-                console.log('Processing image source:', imgSrc);
+                // console.log('Processing image source:', imgSrc);
                 
                 return {
                     ...image,
@@ -25,7 +25,7 @@ const MediaMsgGrid = ({ images, incoming }) => {
                 };
             });
             
-            console.log('Processed images:', processed);
+            // console.log('Processed images:', processed);
             setProcessedImages(processed);
         }
     }, [images]);
@@ -136,7 +136,7 @@ const MediaMsgGrid = ({ images, incoming }) => {
             return <div className="col-span-2 row-span-2 flex items-center justify-center">No images available</div>;
         }
         
-        console.log('Rendering processed images:', processedImages);
+        // console.log('Rendering processed images:', processedImages);
         
         if (processedImages.length === 1) {
             const image = processedImages[0];

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, Checks, DownloadSimple, File } from '@phosphor-icons/react';
 
 const Document = ({ author, document, content, read_receipt, incoming, timestamp }) => {
-  console.log('Rendering document message:', { author, document, content, read_receipt, incoming, timestamp });
+  // console.log('Rendering document message:', { author, document, content, read_receipt, incoming, timestamp });
   const [viewError, setViewError] = useState(null);
 
   // Handle document download/view
