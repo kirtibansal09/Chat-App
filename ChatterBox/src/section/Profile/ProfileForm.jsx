@@ -1,17 +1,86 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import UserOne from "../../assets/images/user/user-01.png";
 import { Camera } from "@phosphor-icons/react";
 import SelectInput from "../../components/Form/SelectInput";
+import {
+  fetchUserProfile,
+  updateUserProfile,
+  updateUserAvatar,
+} from "../../redux/slices/user";
 
 export default function ProfileForm() {
+  const dispatch = useDispatch();
+  const { currentUser, loading } = useSelector((state) => state.user);
+  const authToken = useSelector((state) => state.auth.token); // ✅ fetch token from redux
+
+  const [formData, setFormData] = useState({
+    name: "",
+    jobTitle: "",
+    bio: "",
+    country: "",
+  });
+  const [avatarPreview, setAvatarPreview] = useState("");
+
+  useEffect(() => {
+    if (authToken) {
+      dispatch(fetchUserProfile(authToken));
+    }
+  }, [dispatch, authToken]);
+
+  useEffect(() => {
+    if (currentUser) {
+      setFormData({
+        name: currentUser.name || "",
+        jobTitle: currentUser.jobTitle || "",
+        bio: currentUser.bio || "",
+        country: currentUser.country || "",
+      });
+      setAvatarPreview(currentUser.avatar || "");
+    }
+  }, [currentUser]);
+
+  const handleChange = (key, value) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!authToken) {
+      alert("No auth token found.");
+      return;
+    }
+    await dispatch(updateUserProfile(formData, authToken));
+    alert("Profile updated!");
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      if (!authToken) {
+        alert("No auth token found.");
+        return;
+      }
+      await dispatch(updateUserAvatar(reader.result, authToken));
+      setAvatarPreview(reader.result);
+      alert("Avatar updated!");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (loading) return <p className="p-4">Loading...</p>;
+
   return (
     <div className="flex flex-col w-full p-4 space-y-6">
-      {/* Image Picker */}
+      {/* Avatar */}
       <div className="relative z-30 w-full rounded-full p-1 backdrop-blur sm:max-w-36 sm:p-3">
         <div className="relative drop-shadow-2">
           <img
-            src={UserOne}
-            alt=""
+            src={avatarPreview || UserOne}
+            alt="Profile"
             className="rounded-full object-center object-cover"
           />
           <label
@@ -21,58 +90,38 @@ export default function ProfileForm() {
             <Camera size={20} />
             <input
               type="file"
-              name="profile"
               id="profile"
+              accept="image/*"
               className="sr-only"
+              onChange={handleAvatarChange}
             />
           </label>
         </div>
       </div>
 
-      {/* Rest of the Profile Form */}
+      {/* Form */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark md:max-w-150">
-        <form action="">
+        <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5.5 p-6.5">
-            {/* Name */}
-            <div>
-              <label className="mb-3 block text-black dark:text-white">
-                Name
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your name"
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-              />
-            </div>
-
-            {/* Job Title */}
-            <div>
-              <label className="mb-3 block text-black dark:text-white">
-                Job Title
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your Job Title"
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-              />
-            </div>
-
-            {/* Bio */}
-            <div>
-              <label className="mb-3 block text-black dark:text-white">
-                Bio
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your bio"
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-              />
-            </div>
-
-            {/* Country */}
-            <SelectInput />
-
-            {/* Submit */}
+            <InputField
+              label="Name"
+              value={formData.name}
+              onChange={(val) => handleChange("name", val)}
+            />
+            <InputField
+              label="Job Title"
+              value={formData.jobTitle}
+              onChange={(val) => handleChange("jobTitle", val)}
+            />
+            <InputField
+              label="Bio"
+              value={formData.bio}
+              onChange={(val) => handleChange("bio", val)}
+            />
+            <SelectInput
+              selected={formData.country}
+              onChange={(val) => handleChange("country", val)}
+            />
             <button
               type="submit"
               className="w-full cursor-pointer rounded-lg border border-primary bg-primary py-3 px-6 text-white transition hover:bg-opacity-90"
@@ -82,6 +131,21 @@ export default function ProfileForm() {
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange }) {
+  return (
+    <div>
+      <label className="mb-3 block text-black dark:text-white">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={`Enter your ${label.toLowerCase()}`}
+        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+      />
     </div>
   );
 }
