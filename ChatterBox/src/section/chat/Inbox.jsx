@@ -252,7 +252,7 @@ const Inbox = () => {
             </div>
             <div>
               <h5 className="font-medium text-black dark:text-white">
-                {chatPartner.name || "Unknown User"}
+                {chatPartner?.name || "Unknown User"}
               </h5>
               <p className="text-sm">{chatPartner.status || "Offline"}</p>
             </div>
@@ -360,8 +360,10 @@ const Inbox = () => {
           {current_conversation &&
            typing_users &&
            typing_users[current_conversation._id] &&
-           Object.keys(typing_users[current_conversation._id]).length > 0 && (
-            <TypingIndicator />
+           Object.values(typing_users[current_conversation._id]).some(isTyping => isTyping) && (
+            <div className="flex justify-start">
+              <TypingIndicator />
+            </div>
           )}
         </div>
 

@@ -168,7 +168,7 @@ export const SocketProvider = ({ children }) => {
     socket.on('start-typing', (data) => {
       console.log('Start typing event received:', data);
       if (data.conversationId && data.typingUserId) {
-        handleTypingEvent(data.conversationId, data.typingUserId, true);
+        dispatch(SetTyping(data.conversationId, data.typingUserId, true));
       }
       console.log("entries",  data.conversationId, data.typingUserId)
     });
@@ -176,7 +176,7 @@ export const SocketProvider = ({ children }) => {
     socket.on('stop-typing', (data) => {
       console.log('Stop typing event received:', data);
       if (data.conversationId && data.typingUserId) {
-        handleTypingEvent(data.conversationId, data.typingUserId, false);
+        dispatch(SetTyping(data.conversationId, data.typingUserId, false));
       }
     });
 

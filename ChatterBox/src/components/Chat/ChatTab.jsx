@@ -1,22 +1,52 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { StartConversation, SendFriendRequest, RemoveFriend } from '../../redux/slices/app';
 import { UserPlus, DotsThree } from '@phosphor-icons/react';
 import ChatTabDropdown from './ChatTabDropdown';
 import { toast } from 'react-toastify';
+import { useSocket } from '../../context/SocketContext';
 
 const ChatTab = ({ user, isFriend = false }) => {
   const dispatch = useDispatch();
   const authToken = useSelector((store) => store?.auth?.token);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const triggerRef = useRef(null);
+  const { socket } = useSocket();
 
   // Ensure we have all required properties with fallbacks
   const userId = user?.id || user?._id || "unknown";
   const userName = user?.name || "Unknown User";
   const userStatus = user?.status || "Offline";
   const userImage = user?.avatar || "https://via.placeholder.com/40";
+  const currentConversation = useSelector((store) => store?.app?.current_conversation);
+
+  // Listen for typing events
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleStartTyping = (data) => {
+      if (data.typingUserId === userId && data.conversationId === currentConversation?._id) {
+        setIsTyping(true);
+      }
+    };
+
+    const handleStopTyping = (data) => {
+      if (data.typingUserId === userId && data.conversationId === currentConversation?._id) {
+        setIsTyping(false);
+      }
+    };
+
+    socket.on("start-typing", handleStartTyping);
+    socket.on("stop-typing", handleStopTyping);
+
+    // Clean up event listeners
+    return () => {
+      socket.off("start-typing", handleStartTyping);
+      socket.off("stop-typing", handleStopTyping);
+    };
+  }, [userId, socket, currentConversation]);
 
   const handleSelectConversation = async () => {
     // Only allow conversations with friends
@@ -81,7 +111,7 @@ const ChatTab = ({ user, isFriend = false }) => {
             {userName}
           </h5>
           <p className="text-sm text-gray-5 dark:text-gray-4">
-            {userStatus}
+            {isTyping ? "Typing..." : userStatus}
           </p>
         </div>
 
