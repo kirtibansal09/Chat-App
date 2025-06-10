@@ -170,6 +170,7 @@ export const SocketProvider = ({ children }) => {
       if (data.conversationId && data.typingUserId) {
         handleTypingEvent(data.conversationId, data.typingUserId, true);
       }
+      console.log("entries",  data.conversationId, data.typingUserId)
     });
 
     socket.on('stop-typing', (data) => {
@@ -228,9 +229,15 @@ export const SocketProvider = ({ children }) => {
   // Handle typing events
   const handleTypingEvent = (conversationId, typingUserId, isTyping) => {
     // Only update if it's for the current conversation
+     console.log('=== TYPING EVENT RECEIVED ===');
+  console.log('Conversation ID:', conversationId);
+  console.log('Typing User ID:', typingUserId);
+  console.log('Is Typing:', isTyping);
+  console.log('Current Conversation ID:', current_conversation?._id);
+  console.log('Current User ID:', currentUser?.id || currentUser?._id);
     if (current_conversation && current_conversation._id === conversationId) {
       console.log(`User ${typingUserId} is ${isTyping ? 'typing' : 'not typing'} in conversation ${conversationId}`);
-      dispatch(SetTyping(conversationId, typingUserId, isTyping));
+      dispatch(SetTyping({conversationId, userId: typingUserId, isTyping}));
     }
   };
 
