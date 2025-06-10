@@ -213,6 +213,7 @@ export const UpdateMessages = (messages) => {
 // Typing actions
 export const SetTyping = (conversationId, userId, isTyping) => {
   return (dispatch, getState) => {
+    console.log('SetTyping action called with:', { conversationId, userId, isTyping });
     dispatch(slice.actions.setTyping({ conversationId, userId, isTyping }));
   };
 };

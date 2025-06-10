@@ -1,9 +1,30 @@
 import { Chat, Clock, DotsThreeVertical, VideoCamera, X } from "@phosphor-icons/react";
 import React from "react";
 import { useSelector } from "react-redux";
+import User03 from "../../assets/images/user/user-03.png";
 
 function UserInfo({ handleToggleUserInfo }) {
-  const { currentUser } = useSelector((state) => state.user);
+  // Get current conversation data and current user from Redux (same as Inbox)
+  const { current_conversation } = useSelector((store) => store.app);
+  const currentUser = useSelector((store) => store.auth.user);
+
+  // Get the other participant's data (same logic as Inbox)
+  const currentUserId = currentUser.id || currentUser._id;
+  const otherParticipant = current_conversation?.participants?.find(
+    (participant) => participant._id !== currentUserId
+  );
+
+  // Fallback data if no conversation is selected (same as Inbox)
+  const chatPartner = otherParticipant || {
+    name: "Select a conversation",
+    avatar: User03,
+    status: "Offline"
+  };
+
+  console.log("UserInfo - current_conversation:", current_conversation);
+  console.log("UserInfo - currentUserId:", currentUserId);
+  console.log("UserInfo - otherParticipant:", otherParticipant);
+  console.log("UserInfo - chatPartner:", chatPartner);
 
   return (
     <div className="border-l flex flex-col h-full border-stroke dark:border-strokedark">
@@ -19,21 +40,25 @@ function UserInfo({ handleToggleUserInfo }) {
       <div className="mx-auto my-8">
         <img
           className="w-44 h-44 rounded-lg object-cover object-center"
-          src={currentUser?.avatar}
+          src={chatPartner?.avatar || User03}
+          alt={`${chatPartner?.name || "User"}'s avatar`}
+          onError={(e) => {
+            e.target.src = User03;
+          }}
         />
       </div>
 
       <div className="px-6 space-y-1">
         <div className="text-black dark:text-white text-xl font-medium">
-          {currentUser?.name}
+          {chatPartner?.name || "Unknown User"}
         </div>
-        <span className="text-body">{currentUser?.jobTitle}</span>
+        <span className="text-body">{chatPartner?.jobTitle || chatPartner?.status || "No job title"}</span>
       </div>
 
       <div className="px-6 my-6">
         <div className="flex flex-row items-center space-x-2">
           <Clock size={20} />
-          <div>6:50 AM local time</div>
+          <div>{chatPartner?.timezone || "6:50 AM local time"}</div>
         </div>
       </div>
 
@@ -53,8 +78,8 @@ function UserInfo({ handleToggleUserInfo }) {
 
       <div className="border-t border-stroke dark:border-strokedark px-6 py-6 space-y-4">
         <div className="text-black dark:text-white font-semibold">About</div>
-        <div className="text-sm">{currentUser?.bio}</div>
-        <div className="text-sm text-body">{currentUser?.country}</div>
+        <div className="text-sm">{chatPartner?.bio || "No bio available"}</div>
+        <div className="text-sm text-body">{chatPartner?.country || chatPartner?.location || "Location not specified"}</div>
       </div>
     </div>
   );
