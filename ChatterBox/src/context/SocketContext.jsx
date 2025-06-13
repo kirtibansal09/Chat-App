@@ -25,6 +25,155 @@ export const SocketProvider = ({ children }) => {
 
   const { token, isLoggedIn } = useSelector((store) => store.auth);
 
+  // Define message status methods first
+  const markMessageAsDelivered = useCallback((messageId, conversationId) => {
+    if (socket && isConnected) {
+      console.log('Emitting message-delivered:', { messageId, conversationId });
+      socket.emit('message-delivered', {
+        messageId,
+        conversationId
+      });
+    }
+  }, [socket, isConnected]);
+
+  const markMessageAsRead = useCallback((messageId, conversationId) => {
+    if (socket && isConnected) {
+      console.log('Emitting message-read:', { messageId, conversationId });
+      socket.emit('message-read', {
+        messageId,
+        conversationId
+      });
+    }
+  }, [socket, isConnected]);
+
+  // Then define handleNewMessage
+  const handleNewMessage = useCallback((message) => {
+    console.log('New message received:', message);
+    
+    // Initialize message status
+    const messageWithStatus = {
+      ...message,
+      status: message.status || 'sent'
+    };
+
+    // Add message to store
+    dispatch(AddMessage(messageWithStatus));
+
+    // If this is an incoming message and we're in the conversation
+    if (message.author !== currentUser?._id && current_conversation?._id === message.conversation) {
+      console.log('Marking message as delivered:', message._id);
+      // Mark as delivered first
+      markMessageAsDelivered(message._id, message.conversation);
+      
+      // If conversation is open, mark as read immediately
+      if (current_conversation?._id === message.conversation) {
+        console.log('Conversation is open, marking message as read:', message._id);
+        setTimeout(() => {
+          markMessageAsRead(message._id, message.conversation);
+        }, 500); // Small delay to ensure delivered status is processed first
+      }
+    }
+  }, [currentUser, current_conversation, dispatch, markMessageAsDelivered, markMessageAsRead]);
+
+  // Add method to mark all messages as read when conversation is viewed
+  const markConversationAsRead = useCallback((conversationId) => {
+    if (!current_messages || !conversationId || !currentUser) return;
+
+    // Get unread messages from other users
+    const unreadMessages = current_messages.filter(msg => {
+      // Skip messages without author or if author is the current user
+      if (!msg.author || !msg.author._id) return false;
+      if (msg.author._id === currentUser._id) return false;
+      
+      // Check message status - only mark as read if it's delivered
+      return msg.status === 'delivered';
+    });
+
+    // Mark each unread message as read with a small delay between each
+    unreadMessages.forEach((msg, index) => {
+      if (msg._id) {
+        setTimeout(() => {
+          markMessageAsRead(msg._id, conversationId);
+        }, index * 100); // Add 100ms delay between each message
+      }
+    });
+  }, [current_messages, currentUser, markMessageAsRead]);
+
+  // Socket methods with useCallback to prevent infinite re-renders
+  const sendMessage = useCallback((messageData) => {
+    if (socket && isConnected) {
+      socket.emit('new-message', messageData);
+    } else {
+      console.error('Cannot send message: not connected to server');
+      toast.error('Cannot send message: not connected to server');
+    }
+  }, [socket, isConnected]);
+
+  const requestChatHistory = useCallback((conversationId) => {
+    if (socket && isConnected) {
+      socket.emit('direct-chat-history', { conversationId });
+    }
+  }, [socket, isConnected]);
+
+  const startTyping = useCallback((userId, conversationId) => {
+    if (socket && isConnected) {
+      console.log('Emitting start-typing:', { userId, conversationId });
+      socket.emit('start-typing', { userId, conversationId });
+    }
+  }, [socket, isConnected]);
+
+  const stopTyping = useCallback((userId, conversationId) => {
+    if (socket && isConnected) {
+      console.log('Emitting stop-typing:', { userId, conversationId });
+      socket.emit('stop-typing', { userId, conversationId });
+    }
+  }, [socket, isConnected]);
+
+  // Handle chat history
+  const handleChatHistory = useCallback((data) => {
+    const { conversationId, history } = data;
+
+    // Only update if it's for the current conversation
+    if (current_conversation && current_conversation._id === conversationId) {
+      console.log('Updating chat history for conversation:', conversationId, history);
+      dispatch(UpdateMessages(history));
+    }
+  }, [current_conversation, dispatch]);
+
+  // Handle typing events
+  const handleTypingEvent = useCallback((conversationId, typingUserId, isTyping) => {
+    // Only update if it's for the current conversation
+    console.log('=== TYPING EVENT RECEIVED ===');
+    console.log('Conversation ID:', conversationId);
+    console.log('Typing User ID:', typingUserId);
+    console.log('Is Typing:', isTyping);
+    console.log('Current Conversation ID:', current_conversation?._id);
+    console.log('Current User ID:', currentUser?.id || currentUser?._id);
+    if (current_conversation && current_conversation._id === conversationId) {
+      console.log(`User ${typingUserId} is ${isTyping ? 'typing' : 'not typing'} in conversation ${conversationId}`);
+      dispatch(SetTyping({conversationId, userId: typingUserId, isTyping}));
+    }
+  }, [current_conversation, currentUser, dispatch]);
+
+  // Handle user status changes
+  const handleUserStatusChange = useCallback((userId, status) => {
+    console.log(`User ${userId} is now ${status}`);
+
+    // Update the status in current conversation if it's the other participant
+    if (current_conversation) {
+      const otherParticipant = current_conversation.participants?.find(
+        (participant) => participant._id === userId
+      );
+
+      if (otherParticipant) {
+        // Update the participant's status in the current conversation
+        // This is a simple approach - in a real app, you'd want to update
+        // the user's status in a global users store
+        console.log(`Updating ${otherParticipant.name} status to ${status}`);
+      }
+    }
+  }, [current_conversation]);
+
   // Initialize socket connection
   useEffect(() => {
     if (isLoggedIn && token && !socket) {
@@ -208,156 +357,6 @@ export const SocketProvider = ({ children }) => {
       socket.off('message-status-update');
     };
   }, [socket, dispatch]);
-
-  // Handle new message
-  const handleNewMessage = (message) => {
-    console.log('New message received:', message);
-    const { current_conversation } = useSelector((state) => state.app);
-    
-    // Initialize message status
-    const messageWithStatus = {
-      ...message,
-      status: message.status || 'sent'
-    };
-
-    // Add message to store
-    dispatch(AddMessage(messageWithStatus));
-
-    // If this is an incoming message and we're in the conversation
-    if (message.author !== currentUser?._id && current_conversation?._id === message.conversation) {
-      console.log('Marking message as delivered:', message._id);
-      // Mark as delivered first
-      markMessageAsDelivered(message._id, message.conversation);
-      
-      // If conversation is open, mark as read immediately
-      if (current_conversation?._id === message.conversation) {
-        console.log('Conversation is open, marking message as read:', message._id);
-        setTimeout(() => {
-          markMessageAsRead(message._id, message.conversation);
-        }, 500); // Small delay to ensure delivered status is processed first
-      }
-    }
-  };
-
-  // Handle chat history
-  const handleChatHistory = (data) => {
-    const { conversationId, history } = data;
-
-    // Only update if it's for the current conversation
-    if (current_conversation && current_conversation._id === conversationId) {
-      console.log('Updating chat history for conversation:', conversationId, history);
-      dispatch(UpdateMessages(history));
-    }
-  };
-
-  // Handle typing events
-  const handleTypingEvent = (conversationId, typingUserId, isTyping) => {
-    // Only update if it's for the current conversation
-     console.log('=== TYPING EVENT RECEIVED ===');
-  console.log('Conversation ID:', conversationId);
-  console.log('Typing User ID:', typingUserId);
-  console.log('Is Typing:', isTyping);
-  console.log('Current Conversation ID:', current_conversation?._id);
-  console.log('Current User ID:', currentUser?.id || currentUser?._id);
-    if (current_conversation && current_conversation._id === conversationId) {
-      console.log(`User ${typingUserId} is ${isTyping ? 'typing' : 'not typing'} in conversation ${conversationId}`);
-      dispatch(SetTyping({conversationId, userId: typingUserId, isTyping}));
-    }
-  };
-
-  // Handle user status changes
-  const handleUserStatusChange = (userId, status) => {
-    console.log(`User ${userId} is now ${status}`);
-
-    // Update the status in current conversation if it's the other participant
-    if (current_conversation) {
-      const otherParticipant = current_conversation.participants?.find(
-        (participant) => participant._id === userId
-      );
-
-      if (otherParticipant) {
-        // Update the participant's status in the current conversation
-        // This is a simple approach - in a real app, you'd want to update
-        // the user's status in a global users store
-        console.log(`Updating ${otherParticipant.name} status to ${status}`);
-      }
-    }
-  };
-
-  // Socket methods with useCallback to prevent infinite re-renders
-  const sendMessage = useCallback((messageData) => {
-    if (socket && isConnected) {
-      socket.emit('new-message', messageData);
-    } else {
-      console.error('Cannot send message: not connected to server');
-      toast.error('Cannot send message: not connected to server');
-    }
-  }, [socket, isConnected]);
-
-  const requestChatHistory = useCallback((conversationId) => {
-    if (socket && isConnected) {
-      socket.emit('direct-chat-history', { conversationId });
-    }
-  }, [socket, isConnected]);
-
-  const startTyping = useCallback((userId, conversationId) => {
-    if (socket && isConnected) {
-      console.log('Emitting start-typing:', { userId, conversationId });
-      socket.emit('start-typing', { userId, conversationId });
-    }
-  }, [socket, isConnected]);
-
-  const stopTyping = useCallback((userId, conversationId) => {
-    if (socket && isConnected) {
-      console.log('Emitting stop-typing:', { userId, conversationId });
-      socket.emit('stop-typing', { userId, conversationId });
-    }
-  }, [socket, isConnected]);
-
-  // Add message status methods
-  const markMessageAsDelivered = useCallback((messageId, conversationId) => {
-    if (socket && isConnected) {
-      console.log('Emitting message-delivered:', { messageId, conversationId });
-      socket.emit('message-delivered', {
-        messageId,
-        conversationId
-      });
-    }
-  }, [socket, isConnected]);
-
-  const markMessageAsRead = useCallback((messageId, conversationId) => {
-    if (socket && isConnected) {
-      console.log('Emitting message-read:', { messageId, conversationId });
-      socket.emit('message-read', {
-        messageId,
-        conversationId
-      });
-    }
-  }, [socket, isConnected]);
-
-  // Add method to mark all messages as read when conversation is viewed
-  const markConversationAsRead = useCallback((conversationId) => {
-    if (!current_messages || !conversationId || !currentUser) return;
-
-    // Get unread messages from other users
-    const unreadMessages = current_messages.filter(msg => {
-      // Skip messages without author or if author is the current user
-      if (!msg.author || !msg.author._id) return false;
-      if (msg.author._id === currentUser._id) return false;
-      
-      // Check message status - only mark as read if it's delivered
-      return msg.status === 'delivered';
-    });
-
-    // Mark each unread message as read with a small delay between each
-    unreadMessages.forEach((msg, index) => {
-      if (msg._id) {
-        setTimeout(() => {
-          markMessageAsRead(msg._id, conversationId);
-        }, index * 100); // Add 100ms delay between each message
-      }
-    });
-  }, [current_messages, currentUser, markMessageAsRead]);
 
   // Mark messages as read when conversation is viewed
   useEffect(() => {
