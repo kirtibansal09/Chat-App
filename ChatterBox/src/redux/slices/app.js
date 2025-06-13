@@ -23,6 +23,7 @@ const initialState = {
   current_conversation: null, // Store the current conversation data
   current_messages: [], // Store messages for the current conversation
   typing_users: {}, // Store typing status for conversations
+  messageStatus: {}, // Map of messageId to status (sent, delivered, read)
 };
 
 const slice = createSlice({
@@ -58,6 +59,18 @@ const slice = createSlice({
       state.room_id = action.payload.room_id;
       state.current_conversation = action.payload.conversation || null;
       state.current_messages = action.payload.conversation?.messages || [];
+      
+      // Initialize message statuses for all messages
+      if (action.payload.conversation?.messages) {
+        const initialStatuses = {};
+        action.payload.conversation.messages.forEach(message => {
+          initialStatuses[message._id] = message.status || "sent";
+        });
+        state.messageStatus = {
+          ...state.messageStatus,
+          ...initialStatuses
+        };
+      }
     },
     // deselecting chat when user logs out
     deselectConversation(state, action) {
@@ -68,9 +81,13 @@ const slice = createSlice({
       state.typing_users = {};
     },
     // add new message to current conversation
-    addMessage(state, action) {
-      console.log('Reducer: Adding message to state:', action.payload);
-      state.current_messages = [...state.current_messages, action.payload];
+    AddMessage: (state, action) => {
+      const newMessage = action.payload;
+      // Initialize message status if not present
+      if (!state.messageStatus[newMessage._id]) {
+        state.messageStatus[newMessage._id] = newMessage.status || 'sent';
+      }
+      state.current_messages.push(newMessage);
     },
     // update messages for current conversation
     updateMessages(state, action) {
@@ -107,6 +124,25 @@ const slice = createSlice({
     toggleAudioModal(state, action) {
       state.modals.audio = action.payload;
     },
+    // Add message status reducer
+    SetMessageStatus: (state, action) => {
+      const { messageId, status } = action.payload;
+      // Only update if the new status is "higher" than the current one
+      const currentStatus = state.messageStatus[messageId];
+      const statusOrder = { sent: 0, delivered: 1, read: 2 };
+      
+      if (!currentStatus || statusOrder[status] > statusOrder[currentStatus]) {
+        state.messageStatus[messageId] = status;
+      }
+    },
+    // Update multiple message statuses
+    UpdateMessageStatuses: (state, action) => {
+      const { statuses } = action.payload;
+      state.messageStatus = {
+        ...state.messageStatus,
+        ...statuses
+      };
+    }
   },
   // Add extraReducers to handle the external action
   extraReducers: (builder) => {
@@ -201,12 +237,19 @@ export const AddMessage = (message) => (dispatch, getState) => {
   
   console.log('Current conversation ID:', current_conversation._id);
   
-  dispatch(slice.actions.addMessage(message));
+  dispatch(slice.actions.AddMessage(message));
 };
 
 export const UpdateMessages = (messages) => {
   return (dispatch, getState) => {
     dispatch(slice.actions.updateMessages(messages));
+  };
+};
+
+// Message status actions
+export const SetMessageStatus = (messageId, status) => {
+  return (dispatch) => {
+    dispatch(slice.actions.SetMessageStatus({ messageId, status }));
   };
 };
 
@@ -591,4 +634,11 @@ export const {
 // Or if you want to keep the original export names:
 export const ToggleGiphyModal = (value) => (dispatch) => {
   dispatch(slice.actions.toggleGifModal(value));
+};
+
+// Add new actions
+export const UpdateMessageStatuses = (statuses) => {
+  return (dispatch) => {
+    dispatch(slice.actions.UpdateMessageStatuses(statuses));
+  };
 };

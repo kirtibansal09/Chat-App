@@ -53,7 +53,15 @@ const Inbox = () => {
   });
 
   // Get socket functions
-  const { sendMessage, requestChatHistory, isConnected, startTyping, stopTyping } = useSocket();
+  const { 
+    sendMessage, 
+    requestChatHistory, 
+    isConnected, 
+    startTyping, 
+    stopTyping,
+    markMessageAsDelivered,
+    markMessageAsRead 
+  } = useSocket();
 
   // Get the other participant's data
   const currentUserId = currentUser?.id || currentUser?._id;
@@ -305,31 +313,48 @@ const Inbox = () => {
     console.log('Is near bottom:', isNearBottomRef.current);
   }, [current_messages, showNewMessageIndicator]);
 
+  // Mark messages as delivered when they are received
+  useEffect(() => {
+    if (!current_messages || !current_conversation) return;
+
+    current_messages.forEach(message => {
+      if (!message.incoming && message.status === 'sent') {
+        markMessageAsDelivered(message._id, current_conversation._id);
+      }
+    });
+  }, [current_messages, current_conversation, markMessageAsDelivered]);
+
+  // Mark messages as read when they are viewed
+  useEffect(() => {
+    if (!current_messages || !current_conversation) return;
+
+    const unreadMessages = current_messages.filter(
+      message => message.incoming && message.status !== 'read'
+    );
+
+    unreadMessages.forEach(message => {
+      markMessageAsRead(message._id, current_conversation._id);
+    });
+  }, [current_messages, current_conversation, markMessageAsRead]);
+
   // Render message component based on type
   const renderMessage = (message) => {
-    // Determine if message is incoming or outgoing
-    const messageAuthorId = message.author?._id || message.author;
+    // Get the current user's ID
     const currentUserId = currentUser?.id || currentUser?._id;
+    
+    // Get the message author's ID
+    const messageAuthorId = message.author?._id || message.author;
+    
+    // Message is incoming if the author is not the current user
     const isIncoming = messageAuthorId !== currentUserId;
     
-    // Get author name - ensure we handle both object and string author
-    const authorName = typeof message.author === 'object' && message.author?.name 
-      ? message.author.name 
-      : (isIncoming ? chatPartnerName : 'You');
+    // Get author name
+    const authorName = isIncoming ? chatPartnerName : "You";
     
-    console.log('Rendering message:', {
-      messageId: message._id,
-      authorId: messageAuthorId,
-      currentUserId,
-      isIncoming,
-      authorName,
-      type: message.type
-    });
-
     // Format timestamp
     const timestamp = new Date(message.createdAt).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
     switch (message.type) {
@@ -337,9 +362,9 @@ const Inbox = () => {
         return (
           <TextMessage
             key={message._id}
+            messageId={message._id}
             author={authorName}
             content={message.content || ""}
-            read_receipt="delivered"
             incoming={isIncoming}
             timestamp={timestamp}
           />
@@ -348,10 +373,10 @@ const Inbox = () => {
         return (
           <Document
             key={message._id}
+            messageId={message._id}
             author={authorName}
             document={message.document}
             content={message.content}
-            read_receipt="delivered"
             incoming={isIncoming}
             timestamp={timestamp}
           />
@@ -360,10 +385,10 @@ const Inbox = () => {
         return (
           <Media
             key={message._id}
+            messageId={message._id}
             author={authorName}
             media={message.media || []}
             content={message.content}
-            read_receipt="delivered"
             incoming={isIncoming}
             timestamp={timestamp}
             giphyUrl={message.giphyUrl}
@@ -373,9 +398,9 @@ const Inbox = () => {
         return (
           <VoiceMessage
             key={message._id}
+            messageId={message._id}
             author={authorName}
             audioUrl={message.audioUrl}
-            read_receipt="delivered"
             incoming={isIncoming}
             timestamp={timestamp}
           />

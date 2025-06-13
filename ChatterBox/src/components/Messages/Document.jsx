@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Check, Checks, DownloadSimple, File } from '@phosphor-icons/react';
+import { useSelector } from 'react-redux';
 
-const Document = ({ author, document, content, read_receipt, incoming, timestamp }) => {
+const Document = ({ author, document, content, messageId, incoming, timestamp }) => {
   // console.log('Rendering document message:', { author, document, content, read_receipt, incoming, timestamp });
   const [viewError, setViewError] = useState(null);
+  const appState = useSelector((state) => state.app);
+  const messageStatus = appState?.messageStatus?.[messageId] || "sent";
 
   // Handle document download/view
   const handleDownload = () => {
@@ -104,9 +107,13 @@ const Document = ({ author, document, content, read_receipt, incoming, timestamp
         </div>
         <div className="flex justify-end">
           <p className='text-xs'>{timestamp}</p>
-          {read_receipt === "sent" && <Check className='text-xs ml-1' />}
-          {read_receipt === "delivered" && <Checks className='text-xs ml-1' />}
-          {read_receipt === "read" && <Checks className='text-xs ml-1 text-primary' />}
+          <div className={`${messageStatus !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
+            {messageStatus !== 'sent' ? (
+              <Checks weight="bold" size={18} />
+            ) : (
+              <Check weight="bold" size={18} />
+            )}
+          </div>
         </div>
       </div>
     )

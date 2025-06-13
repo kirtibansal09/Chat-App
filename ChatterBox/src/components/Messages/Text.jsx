@@ -2,9 +2,13 @@ import React from "react";
 import extractLinks from "../../utils/extractLinks";
 import Microlink from "@microlink/react";
 import { Check, Checks } from "@phosphor-icons/react";
+import { useSelector } from "react-redux";
 
-function Text({ incoming, author, timestamp, read_receipt, content }) {
+function Text({ incoming, author, timestamp, messageId, content }) {
   const { links, originalString } = extractLinks(content);
+  const appState = useSelector((state) => state.app);
+  const messageStatus = appState?.messageStatus?.[messageId] || "sent";
+
   return incoming ? (
     <div className="max-w-125">
       <p className="mb-2.5 text-sm font-medium">{author}</p>
@@ -29,8 +33,8 @@ function Text({ incoming, author, timestamp, read_receipt, content }) {
       </div>
 
       <div className="flex flex-row items-center justify-end space-x-2">
-        <div className={`${read_receipt !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
-          {read_receipt !== 'sent' ? (
+        <div className={`${messageStatus !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
+          {messageStatus !== 'sent' ? (
             <Checks weight="bold" size={18} />
           ) : (
             <Check weight="bold" size={18} />

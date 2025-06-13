@@ -1,8 +1,12 @@
 import { Check, Checks } from "@phosphor-icons/react";
 import React from "react";
 import WaveForm from "../WaveForm";
+import { useSelector } from "react-redux";
 
-function Voice({ incoming, timestamp, read_receipt, author }) {
+function Voice({ incoming, timestamp, messageId, author }) {
+  const appState = useSelector((state) => state.app);
+  const messageStatus = appState?.messageStatus?.[messageId] || "sent";
+
   return incoming ? (
     <div className="max-w-125">
       <p className="mb-2.5 text-sm font-medium">{author}</p>
@@ -22,12 +26,12 @@ function Voice({ incoming, timestamp, read_receipt, author }) {
       <div className="flex flex-row items-center justify-end space-x-2">
         <div
           className={`${
-            read_receipt !== "read"
+            messageStatus !== "read"
               ? "text-body dark:text-white"
               : "text-primary"
           }`}
         >
-          {read_receipt !== "sent" ? (
+          {messageStatus !== "sent" ? (
             <Checks weight="bold" size={18} />
           ) : (
             <Check weight="bold" size={18} />

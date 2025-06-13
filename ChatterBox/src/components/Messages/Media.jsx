@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Checks } from '@phosphor-icons/react';
 import MediaMsgGrid from '../MediaMsgGrid';
+import { useSelector } from 'react-redux';
 
-const Media = ({ author, media, content, read_receipt, incoming, timestamp, giphyUrl }) => {
+const Media = ({ author, media, content, messageId, incoming, timestamp, giphyUrl }) => {
   const [formattedMedia, setFormattedMedia] = useState([]);
+  const appState = useSelector((state) => state.app);
+  const messageStatus = appState?.messageStatus?.[messageId] || "sent";
   
   useEffect(() => {
     // If there's a GIF URL, we don't need to process media array
@@ -65,9 +68,9 @@ const Media = ({ author, media, content, read_receipt, incoming, timestamp, giph
           </div>
           <div className="flex justify-end">
             <p className='text-xs'>{timestamp}</p>
-            {read_receipt === "sent" && <Check className='text-xs ml-1' />}
-            {read_receipt === "delivered" && <Checks className='text-xs ml-1' />}
-            {read_receipt === "read" && <Checks className='text-xs ml-1 text-primary' />}
+            {messageStatus !== 'read' && <Check className='text-xs ml-1' />}
+            {messageStatus === 'delivered' && <Checks className='text-xs ml-1' />}
+            {messageStatus === 'read' && <Checks className='text-xs ml-1 text-primary' />}
           </div>
         </div>
       )
@@ -107,9 +110,13 @@ const Media = ({ author, media, content, read_receipt, incoming, timestamp, giph
         </div>
         <div className="flex justify-end">
           <p className='text-xs'>{timestamp}</p>
-          {read_receipt === "sent" && <Check className='text-xs ml-1' />}
-          {read_receipt === "delivered" && <Checks className='text-xs ml-1' />}
-          {read_receipt === "read" && <Checks className='text-xs ml-1 text-primary' />}
+          <div className={`${messageStatus !== 'read' ? "text-body dark:text-white" : "text-primary"}`}>
+            {messageStatus !== 'sent' ? (
+              <Checks weight="bold" size={18} />
+            ) : (
+              <Check weight="bold" size={18} />
+            )}
+          </div>
         </div>
       </div>
     )
