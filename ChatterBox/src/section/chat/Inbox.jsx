@@ -7,6 +7,7 @@ import {
   Phone,
   Smiley,
   VideoCamera,
+  CaretDown,
 } from "@phosphor-icons/react";
 import Dropdown from "../../components/Dropdown";
 import EmojiPicker from "../../components/EmojiPicker";
@@ -28,31 +29,68 @@ import {
 import VideoRoom from "../../components/VideoRoom";
 import AudioRoom from "../../components/AudioRoom";
 import Media from '../../components/Messages/Media';
+import NoChatSVG from "../../assets/Illustration/NoChat";
 
 const Inbox = () => {
   const dispatch = useDispatch();
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [showNewMessageIndicator, setShowNewMessageIndicator] = useState(false);
+  const lastMessageCountRef = useRef(0);
+  const isNearBottomRef = useRef(true);
+  const prevMessagesRef = useRef([]);
 
   // Get current conversation data from Redux
   const { current_conversation, current_messages, typing_users } = useSelector((store) => store.app);
   const currentUser = useSelector((store) => store.auth.user);
 
-
+  // Debug logging
+  console.log('Inbox Component State:', {
+    current_conversation,
+    current_messages,
+    currentUser
+  });
 
   // Get socket functions
   const { sendMessage, requestChatHistory, isConnected, startTyping, stopTyping } = useSocket();
 
   // Get the other participant's data
-  const currentUserId = currentUser.id || currentUser._id;
-  const otherParticipant = current_conversation?.participants?.find(
-    (participant) => participant._id !== currentUserId
-  );
+  const currentUserId = currentUser?.id || currentUser?._id;
+  console.log('Current User ID:', currentUserId);
 
-  // Fallback data if no conversation is selected
-  const chatPartner = otherParticipant || {
-    name: "Select a conversation",
-    avatar: User03,
-    status: "Offline"
-  };
+  // Safely find other participant
+  const otherParticipant = current_conversation?.participants?.find(
+    (participant) => participant?._id !== currentUserId
+  );
+  console.log('Other Participant:', otherParticipant);
+
+  // Early return if no other participant found
+  if (!otherParticipant) {
+    console.log('Early return - no other participant found');
+    return (
+      <div className="flex h-full flex-1 flex-col justify-center items-center">
+        <NoChatSVG />
+        <div className="text-gray-500 dark:text-gray-400 mt-4">
+          Unable to load conversation
+        </div>
+      </div>
+    );
+  }
+
+  // Safely get chat partner properties with fallbacks
+  const chatPartnerName = otherParticipant?.name || 
+    (otherParticipant?.firstName && otherParticipant?.lastName ? 
+      `${otherParticipant.firstName} ${otherParticipant.lastName}` : 
+      "Unknown User");
+  const chatPartnerAvatar = otherParticipant?.avatar || User03;
+  const chatPartnerStatus = otherParticipant?.status || "Offline";
+
+  console.log('Chat Partner Details:', {
+    name: chatPartnerName,
+    avatar: chatPartnerAvatar,
+    status: chatPartnerStatus
+  });
 
   const [userInfoOpen, setUserInfoOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -175,17 +213,109 @@ const Inbox = () => {
     }
   }, [current_messages]);
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [current_messages]);
+
+  // Update scroll handling
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (!container) return;
+      
+      // Calculate if we're near the bottom (within 100px)
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      isNearBottomRef.current = isNearBottom;
+      
+      // Show scroll button if not near bottom
+      setShowScrollToBottom(!isNearBottom);
+      
+      // If we're near bottom, hide new message indicator
+      if (isNearBottom) {
+        setShowNewMessageIndicator(false);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    // Initial check
+    handleScroll();
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle new messages
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || !current_messages) return;
+
+    // Check if we have new messages
+    const hasNewMessages = current_messages.length > prevMessagesRef.current.length;
+    
+    if (hasNewMessages) {
+      // Get the current scroll position
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      isNearBottomRef.current = isNearBottom;
+
+      if (isNearBottom) {
+        // If near bottom, auto-scroll to bottom
+        requestAnimationFrame(() => {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        });
+        setShowScrollToBottom(false);
+        setShowNewMessageIndicator(false);
+      } else {
+        // If not near bottom, show new message indicator
+        setShowNewMessageIndicator(true);
+      }
+    }
+
+    // Update previous messages after handling
+    prevMessagesRef.current = current_messages;
+  }, [current_messages]);
+
+  const handleScrollToBottom = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    });
+    
+    // Hide both indicators after scrolling
+    setShowScrollToBottom(false);
+    setShowNewMessageIndicator(false);
+    isNearBottomRef.current = true;
+  };
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Current messages:', current_messages?.length);
+    console.log('Previous messages:', prevMessagesRef.current?.length);
+    console.log('Show new message indicator:', showNewMessageIndicator);
+    console.log('Is near bottom:', isNearBottomRef.current);
+  }, [current_messages, showNewMessageIndicator]);
+
   // Render message component based on type
   const renderMessage = (message) => {
     // Determine if message is incoming or outgoing
     const messageAuthorId = message.author?._id || message.author;
-    const currentUserId = currentUser.id || currentUser._id;
+    const currentUserId = currentUser?.id || currentUser?._id;
     const isIncoming = messageAuthorId !== currentUserId;
     
     // Get author name - ensure we handle both object and string author
-    const authorName = typeof message.author === 'object' 
+    const authorName = typeof message.author === 'object' && message.author?.name 
       ? message.author.name 
-      : 'Unknown';
+      : (isIncoming ? chatPartnerName : 'You');
     
     console.log('Rendering message:', {
       messageId: message._id,
@@ -226,7 +356,32 @@ const Inbox = () => {
             timestamp={timestamp}
           />
         );
-      // Other cases...
+      case "Media":
+        return (
+          <Media
+            key={message._id}
+            author={authorName}
+            media={message.media || []}
+            content={message.content}
+            read_receipt="delivered"
+            incoming={isIncoming}
+            timestamp={timestamp}
+            giphyUrl={message.giphyUrl}
+          />
+        );
+      case "Audio":
+        return (
+          <VoiceMessage
+            key={message._id}
+            author={authorName}
+            audioUrl={message.audioUrl}
+            read_receipt="delivered"
+            incoming={isIncoming}
+            timestamp={timestamp}
+          />
+        );
+      default:
+        return null;
     }
   };
 
@@ -245,16 +400,16 @@ const Inbox = () => {
           >
             <div className="mr-4.5 h-13 overflow-hidden w-full max-w-13 rounded-full">
               <img
-                src={chatPartner.avatar || User03}
+                src={chatPartnerAvatar}
                 alt="avatar"
                 className="h-full w-full object-cover object-center"
               />
             </div>
             <div>
               <h5 className="font-medium text-black dark:text-white">
-                {chatPartner?.name || "Unknown User"}
+                {chatPartnerName}
               </h5>
-              <p className="text-sm">{chatPartner.status || "Offline"}</p>
+              <p className="text-sm">{chatPartnerStatus}</p>
             </div>
           </div>
 
@@ -270,77 +425,13 @@ const Inbox = () => {
         </div>
 
         {/* List of messages */}
-        <div className="max-h-full space-y-3.5 overflow-auto no-scrollbar px-6 py-7.5 grow">
+        <div 
+          ref={messagesContainerRef}
+          className="max-h-full space-y-3.5 overflow-auto no-scrollbar px-6 py-7.5 grow relative"
+        >
           {current_messages?.length > 0 ? (
-            // Render actual messages when they exist
-            current_messages.map((message, index) => {
-              const messageAuthorId = message.author?._id || message.author;
-              const currentUserId = currentUser.id || currentUser._id;
-              const isIncoming = messageAuthorId !== currentUserId;
-
-              // For now, show all messages as delivered (gray double tick)
-              // TODO: Implement proper read receipts based on user activity
-              let readReceipt = "delivered";
-
-              {/* console.log('Rendering message:', message); */}
-
-              // Render different message types based on the message.type
-              if (message.type === 'Document') {
-                return (
-                  <div key={message._id || index}>
-                    <DocumentMessage
-                      author={message.author?.name || "Unknown"}
-                      document={message.document}
-                      content={message.content}
-                      read_receipt={isIncoming ? "read" : readReceipt}
-                      incoming={isIncoming}
-                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
-                    />
-                  </div>
-                );
-              } else if (message.type === 'Media') {
-                return (
-                  <div key={message._id || index}>
-                    <Media
-                      author={message.author?.name || "Unknown"}
-                      media={message.media || []}
-                      content={message.content}
-                      read_receipt={isIncoming ? "read" : readReceipt}
-                      incoming={isIncoming}
-                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
-                      giphyUrl={message.giphyUrl}
-                    />
-                  </div>
-                );
-              } else if (message.type === 'Audio') {
-                return (
-                  <div key={message._id || index}>
-                    <VoiceMessage
-                      author={message.author?.name || "Unknown"}
-                      audioUrl={message.audioUrl}
-                      read_receipt={isIncoming ? "read" : readReceipt}
-                      incoming={isIncoming}
-                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
-                    />
-                  </div>
-                );
-              } else {
-                // Default to text message
-                return (
-                  <div key={message._id || index}>
-                    <TextMessage
-                      author={message.author?.name || "Unknown"}
-                      content={message.content || ""}
-                      read_receipt={isIncoming ? "read" : readReceipt}
-                      incoming={isIncoming}
-                      timestamp={message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : "Now"}
-                    />
-                  </div>
-                );
-              }
-            })
+            current_messages.map((message) => renderMessage(message))
           ) : (
-            // Show placeholder when no messages
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="text-gray-400 dark:text-gray-500 mb-4">
                 <svg className="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -351,7 +442,7 @@ const Inbox = () => {
                 No messages yet
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                Start a conversation with {chatPartner.name}
+                Start a conversation with {chatPartnerName}
               </p>
             </div>
           )}
@@ -365,6 +456,53 @@ const Inbox = () => {
               <TypingIndicator />
             </div>
           )}
+
+          {/* Scroll to bottom button */}
+          {showScrollToBottom && (
+            <button
+              onClick={handleScrollToBottom}
+              className="fixed bottom-28 right-10 bg-primary text-white rounded-full p-2.5 shadow-lg hover:bg-opacity-90 transition-all duration-200 z-50 group"
+              style={{
+                boxShadow: '0 4px 16px rgba(60, 80, 224, 0.3)',
+                width: '44px',
+                height: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(8px)',
+                backgroundColor: 'rgba(60, 80, 224, 0.95)'
+              }}
+              aria-label="Scroll to bottom"
+            >
+              <CaretDown 
+                size={24} 
+                weight="bold" 
+                className="text-white transform group-hover:translate-y-0.5 transition-transform duration-200" 
+              />
+            </button>
+          )}
+
+          {/* New message indicator */}
+          {showNewMessageIndicator && (
+            <button
+              onClick={handleScrollToBottom}
+              className="fixed bottom-28 right-10 bg-primary text-white rounded-full px-5 py-2.5 shadow-lg hover:bg-opacity-90 transition-all duration-200 z-50 flex items-center gap-2"
+              style={{
+                boxShadow: '0 4px 16px rgba(60, 80, 224, 0.3)',
+                backdropFilter: 'blur(8px)',
+                backgroundColor: 'rgba(60, 80, 224, 0.95)'
+              }}
+            >
+              <CaretDown 
+                size={22} 
+                weight="bold" 
+                className="transform group-hover:translate-y-0.5 transition-transform duration-200"
+              />
+              <span className="text-sm font-bold">New message</span>
+            </button>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
