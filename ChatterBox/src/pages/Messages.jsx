@@ -37,7 +37,20 @@ import { useSelector } from "react-redux";
 import NoChatSVG from "../assets/Illustration/NoChat";
 
 const Messages = () => {
-  const { chat_type, room_id } = useSelector((store) => store.app);
+  const { chat_type, room_id, current_conversation } = useSelector((store) => store.app);
+  const currentUser = useSelector((store) => store.auth.user);
+
+  // Debug logging
+  console.log('Messages Component State:', {
+    chat_type,
+    room_id,
+    current_conversation,
+    currentUser
+  });
+
+  // Check if we have all required data
+  const hasRequiredData = room_id && chat_type === "individual" && current_conversation && currentUser;
+
   return (
     <>
       <div className="flex w-full">
@@ -45,17 +58,21 @@ const Messages = () => {
         <ChatList />
 
         {/* Inbox */}
-        {room_id !== null && chat_type === "individual" ? (
+        {hasRequiredData ? (
           <Inbox />
         ) : (
           <div className="flex h-full flex-1 flex-col justify-center items-center">
             <NoChatSVG />
-            <div>Select a conversation or start a new one</div>
+            <div className="text-gray-500 dark:text-gray-400 mt-4">
+              {!currentUser ? "Please log in" : 
+               !room_id ? "Select a conversation" :
+               !current_conversation ? "Loading conversation..." :
+               "Start a new conversation"}
+            </div>
           </div>
         )}
 
         <GifModal />
-
         <VoiceRecorder />
         <MediaPicker />
         <DocumentPicker />
