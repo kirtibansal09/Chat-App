@@ -409,7 +409,9 @@ const Inbox = () => {
               <h5 className="font-medium text-black dark:text-white">
                 {chatPartnerName}
               </h5>
-              <p className="text-sm">{chatPartnerStatus}</p>
+              <p className={`text-sm ${typing_users && typing_users[current_conversation?._id] && typing_users[current_conversation._id][otherParticipant?._id] ? "text-primary animate-pulse" : ""}`}>
+                {typing_users && typing_users[current_conversation?._id] && typing_users[current_conversation._id][otherParticipant?._id] ? "Typing..." : chatPartnerStatus}
+              </p>
             </div>
           </div>
 
