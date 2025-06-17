@@ -47,29 +47,34 @@ export const SocketProvider = ({ children }) => {
   }, [socket, isConnected]);
 
   // Then define handleNewMessage
-  const handleNewMessage = useCallback((message) => {
-    console.log('New message received:', message);
+  const handleNewMessage = useCallback((data) => {
+    console.log('New message received:', data);
+    
+    // Extract message from data
+    const message = data.message || data;
     
     // Initialize message status
     const messageWithStatus = {
       ...message,
-      status: message.status || 'sent'
+      status: message.status || 'sent',
+      conversation: message.conversation || data.conversationId
     };
 
     // Add message to store
     dispatch(AddMessage(messageWithStatus));
 
     // If this is an incoming message and we're in the conversation
-    if (message.author !== currentUser?._id && current_conversation?._id === message.conversation) {
+    const messageAuthorId = message.author?._id || message.author;
+    if (messageAuthorId !== currentUser?._id && current_conversation?._id === messageWithStatus.conversation) {
       console.log('Marking message as delivered:', message._id);
       // Mark as delivered first
-      markMessageAsDelivered(message._id, message.conversation);
+      markMessageAsDelivered(message._id, messageWithStatus.conversation);
       
       // If conversation is open, mark as read immediately
-      if (current_conversation?._id === message.conversation) {
+      if (current_conversation?._id === messageWithStatus.conversation) {
         console.log('Conversation is open, marking message as read:', message._id);
         setTimeout(() => {
-          markMessageAsRead(message._id, message.conversation);
+          markMessageAsRead(message._id, messageWithStatus.conversation);
         }, 500); // Small delay to ensure delivered status is processed first
       }
     }
@@ -218,9 +223,26 @@ export const SocketProvider = ({ children }) => {
 
       // Message events
       newSocket.on('new-direct-chat', (data) => {
-        console.log('New message received:', data);
-        // TODO: Add message to current conversation
-        handleNewMessage(data);
+        console.log('New direct chat message received:', data);
+        // Only handle incoming messages here
+        const message = data.message || data;
+        const messageAuthorId = message.author?._id || message.author;
+        if (messageAuthorId !== currentUser?._id) {
+          handleNewMessage(data);
+        }
+      });
+
+      // Handle message sent confirmation
+      newSocket.on('message-sent', (data) => {
+        console.log('Message sent confirmation received:', data);
+        if (data.status === 'success' && data.message) {
+          // Only handle outgoing messages here
+          const message = data.message;
+          const messageAuthorId = message.author?._id || message.author;
+          if (messageAuthorId === currentUser?._id) {
+            handleNewMessage(data);
+          }
+        }
       });
 
       // Chat history events
