@@ -24,6 +24,12 @@ const initialState = {
   current_messages: [], // Store messages for the current conversation
   typing_users: {}, // Store typing status for conversations
   messageStatus: {}, // Map of messageId to status (sent, delivered, read)
+  call: {
+    open: false,
+    isCaller: false,
+    incomingOffer: null,
+    incomingCallPending: false,
+  },
 };
 
 const slice = createSlice({
@@ -142,7 +148,35 @@ const slice = createSlice({
         ...state.messageStatus,
         ...statuses
       };
-    }
+    },
+    // Call handling
+    openCallModal: (state, action) => {
+      if (!state.call) {
+        state.call = {};
+      }
+      state.call.open = true;
+      state.call.incomingCallPending = false;
+      state.call.isCaller = action.payload.isCaller;
+      if (action.payload.offer) {
+        state.call.incomingOffer = action.payload.offer;
+      }
+    },
+    closeCallModal: (state) => {
+      if (!state.call) {
+        state.call = {};
+      }
+      state.call.open = false;
+      state.call.isCaller = false;
+      state.call.incomingOffer = null;
+      state.call.incomingCallPending = false;
+    },
+    setIncomingCall: (state, action) => {
+      if (!state.call) {
+        state.call = {};
+      }
+      state.call.incomingCallPending = true;
+      state.call.incomingOffer = action.payload.offer;
+    },
   },
   // Add extraReducers to handle the external action
   extraReducers: (builder) => {
@@ -641,4 +675,17 @@ export const UpdateMessageStatuses = (statuses) => {
   return (dispatch) => {
     dispatch(slice.actions.UpdateMessageStatuses(statuses));
   };
+};
+
+// Call actions
+export const openCallModal = (callData) => (dispatch) => {
+  dispatch(slice.actions.openCallModal(callData));
+};
+
+export const closeCallModal = () => (dispatch) => {
+  dispatch(slice.actions.closeCallModal());
+};
+
+export const setIncomingCall = (callData) => (dispatch) => {
+  dispatch(slice.actions.setIncomingCall(callData));
 };

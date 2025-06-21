@@ -15,7 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import UserInfo from "./UserInfo";
 import Giphy from "../../components/Giphy";
 import { useDispatch, useSelector } from "react-redux";
-import { ToggleAudioModal } from "../../redux/slices/app";
+import { ToggleAudioModal, openCallModal } from "../../redux/slices/app";
 import { useSocket } from "../../context/SocketContext";
 import Attachment from "../../components/Attachment";
 import MsgSeparator from "../../components/MsgSeparator";
@@ -107,15 +107,12 @@ const Inbox = () => {
 
   const [gifOpen, setGifOpen] = useState(false);
 
-  const [videoCall, setVideoCall] = useState(false);
-  const [audioCall, setAudioCall] = useState(false);
-
   const handleToggleVideo = () => {
-    setVideoCall((p) => !p);
+    // To be implemented later
   };
 
   const handleToggleAudio = () => {
-    setAudioCall((p) => !p);
+    dispatch(openCallModal({ isCaller: true }));
   };
 
   const handleToggleGif = (e) => {
@@ -586,13 +583,7 @@ const Inbox = () => {
         </div>
       </div>
 
-      {videoCall && (
-        <VideoRoom open={videoCall} handleClose={handleToggleVideo} />
-      )}
-      {audioCall && (
-        <AudioRoom open={audioCall} handleClose={handleToggleAudio} />
-      )}
-
+      {/* User Info Sidebar */}
       {userInfoOpen && (
         <div className="w-1/4">
           <UserInfo handleToggleUserInfo={handleToggleUserInfo} />
