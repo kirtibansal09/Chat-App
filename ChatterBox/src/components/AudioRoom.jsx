@@ -77,29 +77,30 @@ const AudioRoom = () => {
       }
     };
 
-    socket.on("audio-call-answer", handleAnswer);
-    socket.on("audio-call-ice-candidate", handleIceCandidate);
+    socket.on("call-answer", handleAnswer);
+    socket.on("call-ice-candidate", handleIceCandidate);
 
     // Listen for call missed/rejected event
     const handleCallMissed = () => {
-      console.log("[Frontend Caller] Received audio-call-missed event!");
-      if (isCaller) {
-        dispatch(closeCallModal());
-      }
-    };
-    socket.on("audio-call-missed", handleCallMissed);
-
-    // Listen for call hang-up event
-    const handleCallEnded = () => {
+      console.log("[Frontend Caller] Received call-missed event!");
+      endCall();
       dispatch(closeCallModal());
     };
-    socket.on("audio-call-ended", handleCallEnded);
+    socket.on("call-missed", handleCallMissed);
+
+    // Listen for call hang-up event
+    const handleCallEnded = (data) => {
+      console.log('[Frontend] Received call-ended event:', data);
+      endCall();
+      dispatch(closeCallModal());
+    };
+    socket.on("call-ended", handleCallEnded);
 
     return () => {
-      socket.off("audio-call-answer", handleAnswer);
-      socket.off("audio-call-ice-candidate", handleIceCandidate);
-      socket.off("audio-call-missed", handleCallMissed);
-      socket.off("audio-call-ended", handleCallEnded);
+      socket.off("call-answer", handleAnswer);
+      socket.off("call-ice-candidate", handleIceCandidate);
+      socket.off("call-missed", handleCallMissed);
+      socket.off("call-ended", handleCallEnded);
     };
   }, [socket, userId, isCaller, dispatch]);
 
@@ -129,7 +130,7 @@ const AudioRoom = () => {
     });
     const offer = await peerConnectionRef.current.createOffer();
     await peerConnectionRef.current.setLocalDescription(offer);
-    socket.emit("audio-call-offer", { targetUserId, offer });
+    socket.emit("call-offer", { targetUserId, offer, callType: 'audio' });
   };
 
   // Answer a call (as callee)
@@ -142,7 +143,7 @@ const AudioRoom = () => {
     await peerConnectionRef.current.setRemoteDescription(offer);
     const answer = await peerConnectionRef.current.createAnswer();
     await peerConnectionRef.current.setLocalDescription(answer);
-    socket.emit("audio-call-answer", { targetUserId: fromUserId, answer });
+    socket.emit("call-answer", { targetUserId: fromUserId, answer, callType: 'audio' });
     setCallActive(true);
     setRemoteUserJoined(true);
   };
@@ -167,9 +168,10 @@ const AudioRoom = () => {
     const pc = new window.RTCPeerConnection(iceConfig);
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socket.emit("audio-call-ice-candidate", {
+        socket.emit("call-ice-candidate", {
           targetUserId: otherUserId,
           candidate: event.candidate,
+          callType: 'audio',
         });
       }
     };
@@ -210,13 +212,10 @@ const AudioRoom = () => {
   const handleDisconnect = () => {
     // Determine the other user's ID
     const otherUserId = isCaller ? targetUserId : incomingOffer?.from;
-
     if (otherUserId) {
-      socket.emit('audio-call-hang-up', { otherUserId });
+      socket.emit('call-hang-up', { otherUserId, callType: 'audio' });
     }
-    
-    endCall();
-    dispatch(closeCallModal());
+    // Do not call endCall() or closeCallModal() here; let the event handle it
   };
 
   if (!open) {

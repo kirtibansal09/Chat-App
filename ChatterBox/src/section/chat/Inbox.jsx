@@ -108,11 +108,11 @@ const Inbox = () => {
   const [gifOpen, setGifOpen] = useState(false);
 
   const handleToggleVideo = () => {
-    // To be implemented later
+    dispatch(openCallModal({ isCaller: true, callType: 'video' }));
   };
 
   const handleToggleAudio = () => {
-    dispatch(openCallModal({ isCaller: true }));
+    dispatch(openCallModal({ isCaller: true, callType: 'audio' }));
   };
 
   const handleToggleGif = (e) => {
@@ -438,12 +438,14 @@ const Inbox = () => {
           </div>
 
           <div className="flex flex-row items-center space-x-8">
-            <button onClick={handleToggleVideo}>
-              <VideoCamera size={24} />
-            </button>
-            <button onClick={handleToggleAudio}>
-              <Phone size={24} />
-            </button>
+            <div className="flex flex-row items-center gap-2">
+              <button onClick={handleToggleAudio} title="Audio Call" className="p-2 rounded-full bg-gray-200 dark:bg-boxdark-2 hover:bg-primary hover:text-white">
+                <Phone size={20} />
+              </button>
+              <button onClick={handleToggleVideo} title="Video Call" className="p-2 rounded-full bg-gray-200 dark:bg-boxdark-2 hover:bg-primary hover:text-white">
+                <VideoCamera size={20} />
+              </button>
+            </div>
             <Dropdown />
           </div>
         </div>

@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { openCallModal, closeCallModal } from "../redux/slices/app";
 import { useSocket } from "../context/SocketContext";
+import ringtone from "../assets/audio/file_example.mp3";
+import { Phone, PhoneDisconnect } from "@phosphor-icons/react";
 
 const IncomingCallDialog = () => {
   const dispatch = useDispatch();
@@ -10,6 +12,29 @@ const IncomingCallDialog = () => {
   const friends = useSelector((state) => state.app.friends);
 
   const incomingOffer = callState?.incomingOffer;
+  const callType = callState?.callType || 'audio';
+
+  // Ringtone logic
+  const audioRef = useRef(null);
+  useEffect(() => {
+    if (callState?.incomingCallPending && incomingOffer) {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [callState?.incomingCallPending, incomingOffer]);
 
   if (!callState?.incomingCallPending || !incomingOffer) {
     return null;
@@ -17,55 +42,53 @@ const IncomingCallDialog = () => {
 
   const caller = friends?.find((friend) => friend.id === incomingOffer?.from);
   const callerName = caller ? caller.name : "Unknown Caller";
+  const callerAvatar = caller?.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(callerName);
 
   const handleAccept = () => {
-    dispatch(openCallModal({ isCaller: false, offer: incomingOffer }));
+    dispatch(openCallModal({ isCaller: false, offer: incomingOffer, callType }));
   };
 
   const handleReject = () => {
     const callerId = incomingOffer?.from;
     if (callerId && socket) {
-      socket.emit("audio-call-rejected", { callerId });
+      socket.emit("call-rejected", { callerId, callType });
     }
     dispatch(closeCallModal());
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-boxdark p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
-        <h2 className="text-xl font-bold mb-2 text-black dark:text-white">
-          Incoming Call
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          You have an incoming call from{" "}
-          <span className="font-semibold">{callerName}</span>.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
+      <audio ref={audioRef} src={ringtone} loop autoPlay style={{ display: 'none' }} />
+      <div className="bg-white dark:bg-boxdark p-8 rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-sm flex flex-col items-center relative animate-fade-in">
+        <div className="flex flex-col items-center mb-4">
+          <div className="bg-primary/10 rounded-full p-4 mb-2">
+            <Phone size={36} className="text-primary animate-pulse" />
+          </div>
+          <img
+            src={callerAvatar}
+            alt={callerName}
+            className="w-20 h-20 rounded-full object-cover border-4 border-primary shadow-md mb-2"
+            onError={e => { e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(callerName); }}
+          />
+          <div className="text-lg font-semibold text-black dark:text-white mb-1">{callerName}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300 mb-2">
+            Incoming {callType === 'video' ? 'Video' : 'Audio'} Call
+          </div>
+        </div>
+        <div className="flex flex-row items-center justify-center gap-8 mt-2">
           <button
             onClick={handleReject}
-            style={{
-              backgroundColor: "#EF4444",
-              color: "white",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white text-2xl shadow-lg transition-all duration-150"
+            title="Reject Call"
           >
-            Reject
+            X
           </button>
           <button
             onClick={handleAccept}
-            style={{
-              backgroundColor: "#22C55E",
-              color: "white",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white text-2xl shadow-lg transition-all duration-150"
+            title="Accept Call"
           >
-            Accept
+            <Phone size={32} weight="bold" />
           </button>
         </div>
       </div>
