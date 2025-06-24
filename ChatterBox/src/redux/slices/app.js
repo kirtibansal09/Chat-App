@@ -29,6 +29,7 @@ const initialState = {
     isCaller: false,
     incomingOffer: null,
     incomingCallPending: false,
+    callType: null,
   },
 };
 
@@ -157,6 +158,7 @@ const slice = createSlice({
       state.call.open = true;
       state.call.incomingCallPending = false;
       state.call.isCaller = action.payload.isCaller;
+      state.call.callType = action.payload.callType || null;
       if (action.payload.offer) {
         state.call.incomingOffer = action.payload.offer;
       }
@@ -176,6 +178,7 @@ const slice = createSlice({
       }
       state.call.incomingCallPending = true;
       state.call.incomingOffer = action.payload.offer;
+      state.call.callType = action.payload.callType || null;
     },
   },
   // Add extraReducers to handle the external action
