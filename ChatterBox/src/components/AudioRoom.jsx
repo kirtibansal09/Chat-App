@@ -29,6 +29,7 @@ const AudioRoom = () => {
   const userId = useSelector((state) => state.auth?.user?.id);
   const targetUserId = useSelector((state) => state.app?.room_id);
   const { socket } = useSocket();
+  const currentConversationId = useSelector((state) => state.app.current_conversation?._id);
 
   // ICE servers config (use public STUN for demo)
   const iceConfig = {
@@ -213,7 +214,7 @@ const AudioRoom = () => {
     // Determine the other user's ID
     const otherUserId = isCaller ? targetUserId : incomingOffer?.from;
     if (otherUserId) {
-      socket.emit('call-hang-up', { otherUserId, callType: 'audio' });
+      socket.emit('call-hang-up', { otherUserId, callType: 'audio', conversationId: currentConversationId });
     }
     // Do not call endCall() or closeCallModal() here; let the event handle it
   };

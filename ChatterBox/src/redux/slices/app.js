@@ -96,6 +96,11 @@ const slice = createSlice({
       }
       state.current_messages.push(newMessage);
     },
+    // Add system message to current conversation
+    AddSystemMessage: (state, action) => {
+      const systemMessage = action.payload;
+      state.current_messages.push(systemMessage);
+    },
     // update messages for current conversation
     updateMessages(state, action) {
       state.current_messages = action.payload;
@@ -691,4 +696,8 @@ export const closeCallModal = () => (dispatch) => {
 
 export const setIncomingCall = (callData) => (dispatch) => {
   dispatch(slice.actions.setIncomingCall(callData));
+};
+
+export const AddSystemMessage = (message) => (dispatch, getState) => {
+  dispatch(slice.actions.AddSystemMessage(message));
 };

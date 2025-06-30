@@ -349,10 +349,7 @@ const Inbox = () => {
     const authorName = isIncoming ? chatPartnerName : "You";
     
     // Format timestamp
-    const timestamp = new Date(message.createdAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const timestamp = message.createdAt;
 
     switch (message.type) {
       case "Text":
@@ -402,6 +399,23 @@ const Inbox = () => {
             timestamp={timestamp}
           />
         );
+      case "System": {
+        // Determine if the current user sent the missed call
+        const isSender = (message.author?._id || message.author) === currentUserId;
+        // Show sender name
+        const authorName = isSender ? "You" : chatPartnerName;
+        return (
+          <TextMessage
+            key={message._id}
+            messageId={message._id}
+            author={authorName}
+            content={message.content || "Missed call"}
+            incoming={!isSender}
+            timestamp={timestamp}
+            isSystem // Optionally pass a prop to style as system if needed
+          />
+        );
+      }
       default:
         return null;
     }

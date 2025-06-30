@@ -223,23 +223,21 @@ export const SocketProvider = ({ children }) => {
 
       // Message events
       newSocket.on('new-direct-chat', (data) => {
-        console.log('New direct chat message received:', data);
-        // Only handle incoming messages here
         const message = data.message || data;
         const messageAuthorId = message.author?._id || message.author;
-        if (messageAuthorId !== currentUser?._id) {
+        // Only add if not already present and not sent by current user
+        if (messageAuthorId !== currentUser?._id && !current_messages.some(m => m._id === message._id)) {
           handleNewMessage(data);
         }
       });
 
       // Handle message sent confirmation
       newSocket.on('message-sent', (data) => {
-        console.log('Message sent confirmation received:', data);
         if (data.status === 'success' && data.message) {
-          // Only handle outgoing messages here
           const message = data.message;
           const messageAuthorId = message.author?._id || message.author;
-          if (messageAuthorId === currentUser?._id) {
+          // Only add if not already present and sent by current user
+          if (messageAuthorId === currentUser?._id && !current_messages.some(m => m._id === message._id)) {
             handleNewMessage(data);
           }
         }
@@ -269,6 +267,16 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('error', (error) => {
         console.error('Socket error:', error);
         toast.error(error.message || 'Socket error occurred');
+      });
+
+      // Missed call message
+      newSocket.on('missed_call_message', (data) => {
+        const { conversationId, message } = data;
+        // Only add if not already present
+        if (current_conversation && current_conversation._id === conversationId && !current_messages.some(m => m._id === message._id)) {
+          dispatch(AddMessage(message));
+          toast.info('Missed call', { autoClose: 4000 });
+        }
       });
 
       setSocket(newSocket);

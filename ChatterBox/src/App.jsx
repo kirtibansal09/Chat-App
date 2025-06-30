@@ -8,10 +8,13 @@ import  Layout  from "./layout";
 import ProfilePage from "./pages/ProfilePage";
 import { useDispatch, useSelector } from "react-redux";
 import { useSocket } from "./context/SocketContext";
-import { openCallModal, setIncomingCall, closeCallModal } from "./redux/slices/app";
+import { openCallModal, setIncomingCall, closeCallModal, AddSystemMessage } from "./redux/slices/app";
 import AudioRoom from "./components/AudioRoom";
 import IncomingCallDialog from "./components/IncomingCallDialog";
 import VideoRoom from "./components/VideoRoom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
+import { toast } from "react-toastify";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -32,8 +35,18 @@ const App = () => {
       dispatch(closeCallModal());
     };
 
-    const handleCallMissed = () => {
+    const handleCallMissed = ({ fromUserId, callType, conversationId }) => {
       dispatch(closeCallModal());
+      toast.info("Missed call", { autoClose: 4000 });
+      if (conversationId) {
+        dispatch(AddSystemMessage({
+          _id: `system-missed-call-${Date.now()}`,
+          type: "System",
+          content: `Missed ${callType} call`,
+          createdAt: new Date().toISOString(),
+          system: true,
+        }));
+      }
     }
 
     socket.on("call-ended", handleCallEnded);
@@ -61,11 +74,27 @@ const App = () => {
         {/* Redirect to login page if user is not logged in / ---> /auth/login*/}
         <Route path = "/" element={<Navigate to="/auth/login"/>}/>
         {/* <Route index={true} element={<Messages />} /> */}
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/signup" element={<Signup />} />
-        <Route path="/auth/verify" element={<Verification />} />
+        <Route path="/auth/login" element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        } />
+        <Route path="/auth/signup" element={
+          <GuestRoute>
+            <Signup />
+          </GuestRoute>
+        } />
+        <Route path="/auth/verify" element={
+          <GuestRoute>
+            <Verification />
+          </GuestRoute>
+        } />
 
-        <Route path="/dashboard" element={<Layout/>}>
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout/>
+          </ProtectedRoute>
+        }>
           <Route index element={<Messages/>}/>
           <Route path = "profile" element={<ProfilePage/>} />
         </Route>

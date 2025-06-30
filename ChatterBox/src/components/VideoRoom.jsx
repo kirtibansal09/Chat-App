@@ -25,6 +25,7 @@ const VideoRoom = () => {
   const userId = useSelector((state) => state.auth?.user?.id);
   const targetUserId = useSelector((state) => state.app?.room_id);
   const { socket } = useSocket();
+  const currentConversationId = useSelector((state) => state.app.current_conversation?._id);
 
   const [muteAudio, setMuteAudio] = useState(false);
   const [muteVideo, setMuteVideo] = useState(false);
@@ -208,7 +209,7 @@ const VideoRoom = () => {
   const handleDisconnect = () => {
     const otherUserId = isCaller ? targetUserId : incomingOffer?.from;
     if (otherUserId) {
-      socket.emit('call-hang-up', { otherUserId, callType: 'video' });
+      socket.emit('call-hang-up', { otherUserId, callType: 'video', conversationId: currentConversationId });
     }
   };
 
@@ -272,7 +273,7 @@ const VideoRoom = () => {
             </button>
             <button
               onClick={handleDisconnect}
-              className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white text-2xl shadow-lg transition-all duration-150"
+              className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600  text-black dark:text-white text-2xl shadow-lg transition-all duration-150"
               title="Hang Up"
             >
               <PhoneDisconnect size={32} />

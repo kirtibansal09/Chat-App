@@ -9,7 +9,7 @@ const initialState = {
   isLoading: false,
   error: null,
   token: null,
-  user: {},
+  user: null,
   isLoggedIn: false,
 };
 
@@ -30,8 +30,10 @@ const slice = createSlice({
     logoutSuccess(state, action) {
       state.token = null;
       state.isLoggedIn = false;
+      state.user = null;
     },
     setUserId(state, action) {
+      if (!state.user) state.user = {};
       state.user.id = action.payload;
     },
   },

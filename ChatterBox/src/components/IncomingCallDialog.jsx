@@ -78,7 +78,7 @@ const IncomingCallDialog = () => {
         <div className="flex flex-row items-center justify-center gap-8 mt-2">
           <button
             onClick={handleReject}
-            className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white text-2xl shadow-lg transition-all duration-150"
+            className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600  text-2xl shadow-lg transition-all duration-150  text-red font-bold dark:text-red"
             title="Reject Call"
           >
             X
