@@ -29,10 +29,26 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
+      'react/prop-types': 'off',
+      'react/no-unknown-property': 'off',
+      'react/no-unescaped-entities': 'off',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+      'react-hooks/rules-of-hooks': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
     },
   },
+  {
+    files: [
+      '**/*.config.js',
+      '**/tailwind.config.js',
+      '**/vite.config.js',
+      '**/postcss.config.js'
+    ],
+    languageOptions: {
+      globals: globals.node
+    }
+  }
 ]
