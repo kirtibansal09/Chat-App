@@ -184,7 +184,12 @@ export const SocketProvider = ({ children }) => {
     if (isLoggedIn && token && !socket) {
       console.log('Initializing socket connection...');
 
-      const newSocket = io('http://localhost:8000', {
+      const socketUrl =
+        import.meta.env.VITE_SOCKET_URL ||
+        (typeof window !== 'undefined' && window.__APP_SOCKET_URL__) ||
+        'http://localhost:8000';
+
+      const newSocket = io(socketUrl, {
         auth: {
           token: token
         },
