@@ -365,7 +365,7 @@ const Inbox = () => {
         );
       case "Document":
         return (
-          <Document
+          <DocumentMessage
             key={message._id}
             messageId={message._id}
             author={authorName}

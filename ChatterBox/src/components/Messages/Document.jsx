@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, Checks, DownloadSimple, File } from '@phosphor-icons/react';
 import { useSelector } from 'react-redux';
 
-const Document = ({ author, document, content, messageId, incoming, timestamp }) => {
+const DocumentMessage = ({ author, document, content, messageId, incoming, timestamp }) => {
   // console.log('Rendering document message:', { author, document, content, read_receipt, incoming, timestamp });
   const [viewError, setViewError] = useState(null);
   const appState = useSelector((state) => state.app);
@@ -120,4 +120,4 @@ const Document = ({ author, document, content, messageId, incoming, timestamp })
   );
 };
 
-export default Document
+export default DocumentMessage;

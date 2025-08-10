@@ -5,7 +5,7 @@ import {
   PhoneDisconnect,
   VideoCamera,
   VideoCameraSlash,
-  X,
+  X
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -219,7 +219,7 @@ const VideoRoom = () => {
 
   return (
     <div
-      className="fixed left-0 top-0 z-99 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 block"
+      className="fixed left-0 top-0 z-99 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 "
     >
       <div className="w-full max-w-142.5 rounded-lg bg-white dark:bg-boxdark md:py-8 px-8 py-12 ">
         <div className="flex flex-col space-y-0">
