@@ -71,7 +71,9 @@ const VideoRoom = () => {
       if (peerConnectionRef.current && fromUserId !== userId) {
         try {
           await peerConnectionRef.current.addIceCandidate(candidate);
-        } catch (e) {}
+        } catch (e) {
+          // ignore addIceCandidate race conditions
+        }
       }
     };
     socket.on("call-answer", handleAnswer);
