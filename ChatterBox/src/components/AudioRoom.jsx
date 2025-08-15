@@ -70,18 +70,27 @@ const AudioRoom = () => {
     
     const handleAnswer = async ({ fromUserId, answer }) => {
       if (peerConnectionRef.current && fromUserId !== userId) {
-        await peerConnectionRef.current.setRemoteDescription(answer);
-        setCallActive(true);
-        setRemoteUserJoined(true);
+        try {
+          console.log('Received answer from user:', fromUserId, answer);
+          await peerConnectionRef.current.setRemoteDescription(answer);
+          console.log('Remote description set from answer successfully');
+          setCallActive(true);
+          setRemoteUserJoined(true);
+        } catch (error) {
+          console.error('Error setting remote description from answer:', error);
+        }
       }
     };
 
     const handleIceCandidate = async ({ fromUserId, candidate }) => {
       if (peerConnectionRef.current && fromUserId !== userId) {
         try {
+          console.log('Adding ICE candidate from user:', fromUserId, candidate);
           await peerConnectionRef.current.addIceCandidate(candidate);
+          console.log('ICE candidate added successfully');
         } catch (e) {
-          // ignore
+          console.error('Error adding ICE candidate:', e);
+          // This often happens during connection establishment, not necessarily an error
         }
       }
     };
@@ -132,42 +141,107 @@ const AudioRoom = () => {
 
   // Start a call (as caller)
   const startCall = async () => {
-    await setupLocalStream();
-    createPeerConnection(targetUserId);
-    localStreamRef.current.getTracks().forEach((track) => {
-      peerConnectionRef.current.addTrack(track, localStreamRef.current);
-    });
-    const offer = await peerConnectionRef.current.createOffer();
-    await peerConnectionRef.current.setLocalDescription(offer);
-    socket.emit("call-offer", { targetUserId, offer, callType: 'audio' });
+    try {
+      console.log('Starting call to user:', targetUserId);
+      await setupLocalStream();
+      createPeerConnection(targetUserId);
+      
+      if (!peerConnectionRef.current) {
+        console.error('Peer connection not created');
+        return;
+      }
+      
+      localStreamRef.current.getTracks().forEach((track) => {
+        console.log('Adding track to peer connection:', track.kind);
+        peerConnectionRef.current.addTrack(track, localStreamRef.current);
+      });
+      
+      console.log('Creating offer...');
+      const offer = await peerConnectionRef.current.createOffer();
+      console.log('Offer created:', offer);
+      
+      console.log('Setting local description...');
+      await peerConnectionRef.current.setLocalDescription(offer);
+      console.log('Local description set successfully');
+      
+      console.log('Emitting call-offer to server...');
+      socket.emit("call-offer", { targetUserId, offer, callType: 'audio' });
+      console.log('Call offer sent successfully');
+    } catch (error) {
+      console.error('Error starting call:', error);
+      toast.error('Failed to start call: ' + error.message);
+    }
   };
 
   // Answer a call (as callee)
   const answerCall = async (offer, fromUserId) => {
-    await setupLocalStream();
-    createPeerConnection(fromUserId);
-    localStreamRef.current.getTracks().forEach((track) => {
-      peerConnectionRef.current.addTrack(track, localStreamRef.current);
-    });
-    await peerConnectionRef.current.setRemoteDescription(offer);
-    const answer = await peerConnectionRef.current.createAnswer();
-    await peerConnectionRef.current.setLocalDescription(answer);
-    socket.emit("call-answer", { targetUserId: fromUserId, answer, callType: 'audio' });
-    setCallActive(true);
-    setRemoteUserJoined(true);
+    try {
+      console.log('Answering call from user:', fromUserId);
+      console.log('Received offer:', offer);
+      
+      await setupLocalStream();
+      createPeerConnection(fromUserId);
+      
+      if (!peerConnectionRef.current) {
+        console.error('Peer connection not created');
+        return;
+      }
+      
+      localStreamRef.current.getTracks().forEach((track) => {
+        console.log('Adding track to peer connection:', track.kind);
+        peerConnectionRef.current.addTrack(track, localStreamRef.current);
+      });
+      
+      console.log('Setting remote description...');
+      await peerConnectionRef.current.setRemoteDescription(offer);
+      console.log('Remote description set successfully');
+      
+      console.log('Creating answer...');
+      const answer = await peerConnectionRef.current.createAnswer();
+      console.log('Answer created:', answer);
+      
+      console.log('Setting local description...');
+      await peerConnectionRef.current.setLocalDescription(answer);
+      console.log('Local description set successfully');
+      
+      console.log('Emitting call-answer to server...');
+      socket.emit("call-answer", { targetUserId: fromUserId, answer, callType: 'audio' });
+      console.log('Call answer sent successfully');
+      
+      setCallActive(true);
+      setRemoteUserJoined(true);
+    } catch (error) {
+      console.error('Error answering call:', error);
+      toast.error('Failed to answer call: ' + error.message);
+    }
   };
 
   // Set up local audio stream
   const setupLocalStream = async () => {
     if (localStreamRef.current) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('Requesting audio permissions...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
       localStreamRef.current = stream;
       if (localAudioRef.current) {
         localAudioRef.current.srcObject = stream;
       }
+      console.log('Local audio stream setup successful');
     } catch (error) {
-      console.error("Error accessing media devices.", error);
+      console.error("Error accessing media devices:", error);
+      if (error.name === 'NotAllowedError') {
+        toast.error('Microphone access denied. Please allow microphone permissions.');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('No microphone found. Please connect a microphone.');
+      } else {
+        toast.error('Failed to access microphone: ' + error.message);
+      }
     }
   };
 
@@ -176,6 +250,7 @@ const AudioRoom = () => {
     if (peerConnectionRef.current) return;
     
     try {
+      console.log('Creating peer connection with ICE config:', iceConfig);
       const pc = new window.RTCPeerConnection(iceConfig);
       
       pc.onicecandidate = (event) => {
@@ -186,18 +261,33 @@ const AudioRoom = () => {
             candidate: event.candidate,
             callType: 'audio',
           });
+        } else {
+          console.log('ICE candidate gathering completed');
         }
       };
       
+      pc.onicegatheringstatechange = () => {
+        console.log('ICE gathering state:', pc.iceGatheringState);
+      };
+      
       pc.oniceconnectionstatechange = () => {
-        console.log('ICE connection state:', pc.iceConnectionState);
+        console.log('ICE connection state changed to:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
           console.error('ICE connection failed or disconnected');
+          toast.error('Call connection failed. This often happens when users are on different networks.');
         }
       };
       
       pc.onconnectionstatechange = () => {
-        console.log('Connection state:', pc.connectionState);
+        console.log('Connection state changed to:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+          console.error('Peer connection failed');
+          toast.error('Call failed to establish connection');
+        }
+      };
+      
+      pc.onsignalingstatechange = () => {
+        console.log('Signaling state:', pc.signalingState);
       };
       
       pc.ontrack = (event) => {
@@ -212,6 +302,7 @@ const AudioRoom = () => {
       console.log('Peer connection created successfully');
     } catch (error) {
       console.error('Failed to create peer connection:', error);
+      toast.error('Failed to create call connection');
     }
   };
 
