@@ -31,9 +31,17 @@ const AudioRoom = () => {
   const { socket } = useSocket();
   const currentConversationId = useSelector((state) => state.app.current_conversation?._id);
 
-  // ICE servers config (use public STUN for demo)
+  // ICE servers config - STUN + TURN for better connectivity
   const iceConfig = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      // Add TURN servers for better connectivity across different networks
+      // You can get free TURN servers from services like Twilio, Xirsys, or self-host coturn
+      // For now, using multiple STUN servers as fallback
+    ],
+    iceCandidatePoolSize: 10,
   };
 
   // Start call if caller
@@ -166,23 +174,45 @@ const AudioRoom = () => {
   // Create peer connection and set up handlers
   const createPeerConnection = (otherUserId) => {
     if (peerConnectionRef.current) return;
-    const pc = new window.RTCPeerConnection(iceConfig);
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("call-ice-candidate", {
-          targetUserId: otherUserId,
-          candidate: event.candidate,
-          callType: 'audio',
-        });
-      }
-    };
-    pc.ontrack = (event) => {
-      if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = event.streams[0];
-      }
-      setRemoteUserJoined(true);
-    };
-    peerConnectionRef.current = pc;
+    
+    try {
+      const pc = new window.RTCPeerConnection(iceConfig);
+      
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log('ICE candidate generated:', event.candidate);
+          socket.emit("call-ice-candidate", {
+            targetUserId: otherUserId,
+            candidate: event.candidate,
+            callType: 'audio',
+          });
+        }
+      };
+      
+      pc.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.error('ICE connection failed or disconnected');
+        }
+      };
+      
+      pc.onconnectionstatechange = () => {
+        console.log('Connection state:', pc.connectionState);
+      };
+      
+      pc.ontrack = (event) => {
+        console.log('Remote track received:', event.streams[0]);
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = event.streams[0];
+        }
+        setRemoteUserJoined(true);
+      };
+      
+      peerConnectionRef.current = pc;
+      console.log('Peer connection created successfully');
+    } catch (error) {
+      console.error('Failed to create peer connection:', error);
+    }
   };
 
   // End call and cleanup

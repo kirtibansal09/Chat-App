@@ -39,7 +39,15 @@ const VideoRoom = () => {
   const remoteStreamRef = useRef(null);
 
   const iceConfig = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      // Add TURN servers for better connectivity across different networks
+      // You can get free TURN servers from services like Twilio, Xirsys, or self-host coturn
+      // For now, using multiple STUN servers as fallback
+    ],
+    iceCandidatePoolSize: 10,
   };
 
   useEffect(() => {
